@@ -1,13 +1,19 @@
 package com.project.cookshare.services;
 
+import com.project.cookshare.DTOs.RecipeDTO;
 import com.project.cookshare.models.Recipe;
 import java.util.List;
-import java.util.Optional;
 
 public interface RecipeService {
-    Recipe addRecipe(Recipe recipe);
-    Optional<Recipe> getRecipeById(Integer id);
+
+    // Class Diagram Methods
+    void addRecipe(RecipeDTO recipeDTO);
+    void addInstruction(String instruction);
+    void updateRecipe(RecipeDTO recipeDTO);
+    void deleteRecipe(Integer recipeId);
+
+    // Additional Methods
+    RecipeDTO findRecipeById(Integer recipeId);
     List<Recipe> getAllRecipes();
-    Recipe updateRecipe(Recipe recipe);
-    void deleteRecipeById(Integer id);
+
 }

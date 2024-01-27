@@ -1,6 +1,6 @@
 package com.project.cookshare.services.implementations;
 
-import com.project.cookshare.DTOs.UserDTO;
+import com.project.cookshare.DTOs.*;
 import com.project.cookshare.models.User;
 import com.project.cookshare.repositories.UserRepository;
 import com.project.cookshare.services.UserService;
@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import static com.project.cookshare.mapper.UserMapper.mapToUserDTO;
+import static com.project.cookshare.mapper.UserMapper.mapToUserEntity;
 
 @Service
 public class UserServiceImplementation implements UserService {
@@ -19,30 +20,33 @@ public class UserServiceImplementation implements UserService {
         this.userRepository = userRepository;
     }
 
+    // Class Diagram Methods
     @Override
     public void registerUser(String username, String password) {
         User user = new User();
         user.setUsername(username);
+        // TODO: Encrypt the password before saving
         user.setPassword(password);
-        userRepository.save(user);
-    }
-
-    @Override
-    public UserDTO findUserByUsername(String username) {
-        User user = userRepository.findByUsername(username);
-        return mapToUserDTO(user);
-    }
-
-    @Override
-    public void saveUser(UserDTO userDTO) {
-        User user = new User();
-        user.setUsername(userDTO.getUsername());
-        user.setPassword(userDTO.getPassword());
         userRepository.save(user);
     }
 
     @Override
     public void deleteUser(Integer userId) {
         userRepository.deleteById(userId);
+        // TODO: Handle the case where the userId is not found
+    }
+
+    @Override
+    public void updateProfile(UserDTO userDTO) {
+        User user = mapToUserEntity(userDTO);
+        userRepository.save(user);
+    }
+
+    // Additional Methods
+    @Override
+    public UserDTO findUserByUsername(String username) {
+        User user = userRepository.findByUsername(username);
+        // TODO: Handle the case where the user is not found
+        return mapToUserDTO(user);
     }
 }

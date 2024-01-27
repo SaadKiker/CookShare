@@ -5,7 +5,7 @@ import com.project.cookshare.models.User;
 
 public class UserMapper {
 
-    public static User mapToUser(UserDTO user) {
+    public static User mapToUserEntity(UserDTO user) {
         return User.builder()
                 .id(user.getId())
                 .username(user.getUsername())
