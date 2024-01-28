@@ -8,7 +8,6 @@ public interface RecipeService {
 
     // Class Diagram Methods
     void addRecipe(RecipeDTO recipeDTO);
-    void addInstruction(String instruction);
     void updateRecipe(RecipeDTO recipeDTO);
     void deleteRecipe(Integer recipeId);
 

@@ -10,7 +10,7 @@ public interface RatingService {
 
     // Class Diagram Methods
     void rateRecipe(Integer recipeId, RatingDTO ratingDTO);
-    void updateRating(RecipeDTO recipeDTO, RatingDTO ratingDTO);
+    void updateRating(RatingDTO ratingDTO);
     void deleteRatingById(Integer ratingId);
 
     // Additional Methods

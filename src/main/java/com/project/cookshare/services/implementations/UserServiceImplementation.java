@@ -22,8 +22,9 @@ public class UserServiceImplementation implements UserService {
 
     // Class Diagram Methods
     @Override
-    public void registerUser(String username, String password) {
+    public void registerUser(String name, String username, String password) {
         User user = new User();
+        user.setName(name);
         user.setUsername(username);
         // TODO: Encrypt the password before saving
         user.setPassword(password);
@@ -31,7 +32,17 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
-    public void deleteUser(Integer userId) {
+    public boolean login(String username, String password) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
+        return user.getPassword().equals(password);
+    }
+
+
+    @Override
+    public void deleteAccount(Integer userId) {
         userRepository.deleteById(userId);
         // TODO: Handle the case where the userId is not found
     }

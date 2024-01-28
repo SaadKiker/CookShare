@@ -1,9 +1,15 @@
 package com.project.cookshare.DTOs;
+import lombok.Builder;
+import lombok.Data;
 
+@Data
+@Builder
 public class RatingDTO {
+
     private Integer id;
     private Integer score;
-    // User and recipe information can be included as needed
+    private Integer averageScore;
+    private RecipeDTO recipe;
+    private UserDTO rater;
 
-    // Getters and Setters
 }

@@ -14,5 +14,6 @@ public interface IngredientService {
     // Additional Methods
     IngredientDTO findIngredientByName(String ingredientName);
     List<Ingredient> getAllIngredients();
+    List<Ingredient> FilterIngredients(String filter);
 
 }

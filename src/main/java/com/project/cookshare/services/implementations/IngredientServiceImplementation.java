@@ -1,13 +1,15 @@
 package com.project.cookshare.services.implementations;
 
 import com.project.cookshare.DTOs.IngredientDTO;
+import com.project.cookshare.mapper.IngredientMapper;
 import com.project.cookshare.models.Ingredient;
 import com.project.cookshare.repositories.IngredientRepository;
 import com.project.cookshare.services.IngredientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class IngredientServiceImplementation implements IngredientService {
@@ -19,26 +21,33 @@ public class IngredientServiceImplementation implements IngredientService {
         this.ingredientRepository = ingredientRepository;
     }
 
-    // Class diagram Methods
     @Override
     public void addIngredient(Ingredient ingredient) {
-        // Implementation
+        ingredientRepository.save(ingredient);
     }
 
     @Override
     public void removeIngredientById(Integer ingredientId) {
-
+        ingredientRepository.deleteById(ingredientId);
     }
 
     @Override
     public IngredientDTO findIngredientByName(String ingredientName) {
-        return null;
+        Ingredient ingredient = ingredientRepository.findByName(ingredientName)
+                .orElseThrow(() -> new IllegalArgumentException("Ingredient not found"));
+        return IngredientMapper.mapToIngredientDTO(ingredient);
     }
 
-    // Additional Methods
     @Override
     public List<Ingredient> getAllIngredients() {
-        return null;
+        return ingredientRepository.findAll();
     }
 
+    @Override
+    public List<Ingredient> FilterIngredients(String filter) {
+        return ingredientRepository.findAll()
+                .stream()
+                .filter(ingredient -> ingredient.getName().contains(filter))
+                .collect(Collectors.toList());
+    }
 }

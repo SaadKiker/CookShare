@@ -18,6 +18,9 @@ public class Rating {
     @Column(nullable = false)
     private Integer score;
 
+    @Column(nullable = false)
+    private Integer averageScore;
+
     @ManyToOne
     @JoinColumn(name = "recipe_id", nullable = false)
     private Recipe recipe;

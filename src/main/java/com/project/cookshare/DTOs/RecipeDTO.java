@@ -1,7 +1,11 @@
 package com.project.cookshare.DTOs;
 
 import java.util.Date;
+import lombok.Builder;
+import lombok.Data;
 
+@Data
+@Builder
 public class RecipeDTO {
     private Integer id;
     private String title;
@@ -9,8 +13,6 @@ public class RecipeDTO {
     private String instructions;
     private Date createdDate;
     private String cookingTime;
+    private UserDTO author;
     private String image;
-    // Author information can be included as needed, possibly as a UserDTO
-
-    // Getters and Setters
 }
