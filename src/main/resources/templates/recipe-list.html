@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Recipe List</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <!-- Your navigation bar content -->
+</nav>
+<header class="bg-dark py-5">
+    <div class="container px-4 px-lg-5 my-5">
+        <h1 class="display-4 fw-bolder text-white text-center">Recipe List</h1>
+    </div>
+</header>
+<section class="py-5">
+    <div class="container px-4 px-lg-5 mt-5">
+        <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+            <div th:each="recipe : ${recipes}" class="col mb-5">
+                <div class="card h-100">
+                    <img class="card-img-top" th:src="${recipe.image}" alt="Recipe Image" />
+                    <div class="card-body p-4">
+                        <div class="text-center">
+                            <h5 class="fw-bolder" th:text="${recipe.title}">Recipe Title</h5>
+                            <p th:text="${recipe.description}">Recipe Description</p>
+                        </div>
+                    </div>
+                    <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                        <div class="text-center">
+                            <a th:href="@{/recipe/{id}(id=${recipe.id})}" class="btn btn-outline-dark mt-auto">View Recipe</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<footer class="py-5 bg-dark">
+    <div class="container">
+        <p class="m-0 text-center text-white">Copyright &copy; Your Website 2023</p>
+    </div>
+</footer>
+</body>
+</html>

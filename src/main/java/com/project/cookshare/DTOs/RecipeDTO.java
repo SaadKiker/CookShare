@@ -11,8 +11,8 @@ public class RecipeDTO {
     private String title;
     private String description;
     private String instructions;
-    private Date createdDate;
-    private String cookingTime;
+    private Date created_date;
+    private String cooking_time;
     private UserDTO author;
     private String image;
 }

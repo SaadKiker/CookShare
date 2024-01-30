@@ -28,10 +28,10 @@ public class Recipe {
 
     @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createdDate;
+    private Date created_date;
 
     @Column
-    private String cookingTime;
+    private String cooking_time;
 
     @Column
     private String image;
@@ -42,9 +42,6 @@ public class Recipe {
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
     private Set<Comment> comments;
-
-    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
-    private Set<Ingredient> ingredients;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
     private Set<Rating> ratings;

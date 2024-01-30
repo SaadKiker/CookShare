@@ -12,8 +12,8 @@ public class RecipeMapper {
         recipe.setTitle(recipeDTO.getTitle());
         recipe.setDescription(recipeDTO.getDescription());
         recipe.setInstructions(recipeDTO.getInstructions());
-        recipe.setCreatedDate(recipeDTO.getCreatedDate());
-        recipe.setCookingTime(recipeDTO.getCookingTime());
+        recipe.setCreated_date(recipeDTO.getCreated_date());
+        recipe.setCooking_time(recipeDTO.getCooking_time());
         recipe.setImage(recipeDTO.getImage());
 
         User author = UserMapper.mapToUserEntity(recipeDTO.getAuthor());
@@ -28,8 +28,8 @@ public class RecipeMapper {
                 .title(recipe.getTitle())
                 .description(recipe.getDescription())
                 .instructions(recipe.getInstructions())
-                .createdDate(recipe.getCreatedDate())
-                .cookingTime(recipe.getCookingTime())
+                .created_date(recipe.getCreated_date())
+                .cooking_time(recipe.getCooking_time())
                 .image(recipe.getImage())
                 .build();
 
@@ -42,8 +42,8 @@ public class RecipeMapper {
         existingRecipe.setTitle(recipeDTO.getTitle());
         existingRecipe.setDescription(recipeDTO.getDescription());
         existingRecipe.setInstructions(recipeDTO.getInstructions());
-        existingRecipe.setCreatedDate(recipeDTO.getCreatedDate());
-        existingRecipe.setCookingTime(recipeDTO.getCookingTime());
+        existingRecipe.setCreated_date(recipeDTO.getCreated_date());
+        existingRecipe.setCooking_time(recipeDTO.getCooking_time());
         existingRecipe.setImage(recipeDTO.getImage());
 
         existingRecipe.setAuthor(UserMapper.mapToUserEntity(recipeDTO.getAuthor()));

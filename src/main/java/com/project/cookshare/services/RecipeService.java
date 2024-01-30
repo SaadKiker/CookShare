@@ -13,6 +13,6 @@ public interface RecipeService {
 
     // Additional Methods
     RecipeDTO findRecipeById(Integer recipeId);
-    List<Recipe> getAllRecipes();
+    List<RecipeDTO> getAllRecipes();
 
 }

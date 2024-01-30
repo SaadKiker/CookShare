@@ -8,6 +8,9 @@ import com.project.cookshare.services.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.project.cookshare.mapper.RecipeMapper.mapToRecipeDTO;
 
 @Service
 public class RecipeServiceImplementation implements RecipeService {
@@ -45,11 +48,13 @@ public class RecipeServiceImplementation implements RecipeService {
     public RecipeDTO findRecipeById(Integer recipeId) {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
-        return RecipeMapper.mapToRecipeDTO(recipe);
+        return mapToRecipeDTO(recipe);
     }
 
     @Override
-    public List<Recipe> getAllRecipes() {
-        return recipeRepository.findAll();
+    public List<RecipeDTO> getAllRecipes() {
+        List<Recipe> recipes = recipeRepository.findAll();
+        return recipes.stream().map(RecipeMapper::mapToRecipeDTO).collect(Collectors.toList());
+
     }
 }
