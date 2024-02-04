@@ -42,4 +42,10 @@ public class CommentServiceImplementation implements CommentService {
     public List<Comment> getAllComments() {
         return commentRepository.findAll();
     }
+
+    @Override
+    public long countComments() {
+        return commentRepository.count(); // Assuming you have a JPA repository
+    }
+
 }

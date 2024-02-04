@@ -3,21 +3,44 @@ package com.project.cookshare.mapper;
 import com.project.cookshare.DTOs.IngredientDTO;
 import com.project.cookshare.models.Ingredient;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class IngredientMapper {
 
-    public static Ingredient mapToIngredientEntity(IngredientDTO ingredientDTO) {
-        Ingredient ingredient = new Ingredient();
-        ingredient.setId(ingredientDTO.getId());
-        ingredient.setName(ingredientDTO.getName());
-        ingredient.setQuantity(ingredientDTO.getQuantity());
-        return ingredient;
+    public static Ingredient mapToIngredientEntity(IngredientDTO dto) {
+        Ingredient entity = new Ingredient();
+        entity.setId(dto.getId());
+        entity.setName(dto.getName());
+        entity.setQuantity(dto.getQuantity());
+        // Assuming there are additional fields like Recipe which are set elsewhere
+        return entity;
     }
 
-    public static IngredientDTO mapToIngredientDTO(Ingredient ingredient) {
+    public static Set<Ingredient> mapToIngredientEntities(Set<IngredientDTO> dtos) {
+        if (dtos == null) {
+            return new HashSet<>();
+        }
+        return dtos.stream()
+                .map(IngredientMapper::mapToIngredientEntity)
+                .collect(Collectors.toSet());
+    }
+
+    public static IngredientDTO mapToIngredientDTO(Ingredient entity) {
         return IngredientDTO.builder()
-                .id(ingredient.getId())
-                .name(ingredient.getName())
-                .quantity(ingredient.getQuantity())
+                .id(entity.getId())
+                .name(entity.getName())
+                .quantity(entity.getQuantity())
                 .build();
+    }
+
+    public static Set<IngredientDTO> mapToIngredientDTOs(Set<Ingredient> entities) {
+        if (entities == null) {
+            return new HashSet<>();
+        }
+        return entities.stream()
+                .map(IngredientMapper::mapToIngredientDTO)
+                .collect(Collectors.toSet());
     }
 }

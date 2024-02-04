@@ -12,4 +12,6 @@ import java.util.List;
 @Repository
 public interface RecipeRepository extends JpaRepository<Recipe, Integer> {
     Recipe findByTitle(String title);
+    List<Recipe> findByCategoryName(String categoryName);
+
 }

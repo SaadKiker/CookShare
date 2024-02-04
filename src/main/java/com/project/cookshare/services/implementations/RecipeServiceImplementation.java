@@ -75,4 +75,14 @@ public class RecipeServiceImplementation implements RecipeService {
         List<InstructionStep> instructions = instructionStepRepository.findByRecipe(recipe);
         return instructions.stream().map(InstructionStepMapper::mapToInstructionStepDTO).collect(Collectors.toList());
     }
+
+    @Override
+    public List<RecipeDTO> getRecipesByCategory(String categoryName) {
+        // Fetch recipes by category name
+        List<Recipe> recipes = recipeRepository.findByCategoryName(categoryName);
+        // Use the mapper to convert each Recipe entity to a RecipeDTO
+        return recipes.stream()
+                .map(RecipeMapper::mapToRecipeDTO) // Assuming the method to convert to DTO is called toDto
+                .collect(Collectors.toList());
+    }
 }

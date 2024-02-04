@@ -14,5 +14,7 @@ public interface CommentService {
 
     // Additional Methods
     List<Comment> getAllComments();
+    long countComments();
+
 
 }

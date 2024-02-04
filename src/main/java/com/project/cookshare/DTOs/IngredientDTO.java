@@ -7,5 +7,6 @@ import lombok.Data;
 public class IngredientDTO {
     private Integer id;
     private String name;
+    private RecipeDTO recipe;
     private String quantity;
 }

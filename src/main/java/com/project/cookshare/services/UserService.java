@@ -12,5 +12,4 @@ public interface UserService {
 
     // Additional Methods
     UserDTO findUserByUsername(String username);
-
 }

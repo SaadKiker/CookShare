@@ -9,12 +9,12 @@
 	
 	<title>SocialChef</title>
 	
-	<link rel="stylesheet" href="css/style.css" />
-	<link rel="stylesheet" href="css/icons.css" />
+	<link rel="stylesheet" href="/css/style.css" />
+	<link rel="stylesheet" href="/css/icons.css" />
 	<link href="http://fonts.googleapis.com/css?family=Raleway:400,300,500,600,700,800" rel="stylesheet">
 	<script src="https://use.fontawesome.com/e808bf9397.js"></script>
 	<link rel="shortcut icon" href="images/favicon.ico" />
-	
+
 	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 	<!--[if lt IE 9]>
@@ -28,49 +28,13 @@
 		<div class="spinner"></div>
 	</div>
 	<!--//preloader-->
-	
+
 	<!--header-->
 	<header class="head" role="banner">
 		<!--wrap-->
 		<div class="wrap clearfix">
-			<a href="index.html" title="SocialChef" class="logo"><img src="images/ico/logo.png" alt="SocialChef logo" /></a>
-			
-			<nav class="main-nav" role="navigation" id="menu">
-				<ul>
-					<li><a href="index.html" title="Home"><span>Home</span></a></li>
-					<li><a href="recipes.html" title="Recipes"><span>Recipes</span></a>
-						<ul>
-							<li><a href="recipes2.html" title="Recipes 2">Recipes 2</a></li><li><a href="recipe.html" title="Recipe">Recipe</a></li>
-						</ul>
-					</li>
-					<li><a href="blog.html" title="Blog"><span>Blog</span></a>
-						<ul>
-							<li><a href="blog_single.html" title="Blog post">Blog post</a></li>
-						</ul>
-					</li>
-					<li><a href="#" title="Pages"><span>Pages</span></a>
-						<ul>
-							<li><a href="left_sidebar.html" title="Left sidebar page">Left sidebar page</a></li>
-							<li><a href="right_sidebar.html" title="Right sidebar page">Right sidebar page</a></li>
-							<li><a href="two_sidebars.html" title="Both sidebars page">Both sidebars page</a></li>
-							<li><a href="full_width.html" title="Full width page">Full width page</a></li>
-							<li><a href="login.html" title="Login page">Login page</a></li><li><a href="register.html" title="Register page">Register page</a></li>
-							<li><a href="error404.html" title="Error page">Error page</a></li>
-						</ul>
-					</li>
-					<li><a href="#" title="Features"><span>Features</span></a>
-						<ul>
-							<li><a href="icons.html" title="Icons">Icons</a></li>
-							<li><a href="grid.html" title="Grid">Grid</a></li>
-							<li><a href="shortcodes.html" title="Shortcodes">Shortcodes</a></li>
-							<li><a href="pricing.html" title="Pricing tables">Pricing tables</a></li>
-						</ul>
-					</li>
-					<li><a href="contact.html" title="Contact"><span>Contact</span></a></li>
-					<li><a href="http://themeforest.net/item/socialchef-social-recipe-html-template/8568727?ref=themeenergy" title="Buy now"><span>Buy now</span></a></li>
-				</ul>
-			</nav>
-			
+			<a href="recipes.html" title="SocialChef" class="logo"><img src="/assets/ico/logo.png" alt="SocialChef logo" /></a>
+
 			<nav class="user-nav" role="navigation">
 				<ul>
 					<li class="light"><a href="find_recipe.html" title="Search for recipes"><i class="icon icon-themeenergy_search"></i> <span>Search for recipes</span></a></li>
@@ -88,40 +52,38 @@
 		<div class="wrap clearfix">
 			<!--row-->
 			<div class="row">
-			<!--content-->
+				<!--content-->
 				<section class="content center full-width">
 					<div class="modal container">
 						<h3>Login</h3>
-						<div class="f-row">
-							<input type="text" placeholder="Your username" />
-						</div>
-						<div class="f-row">
-							<input type="password" placeholder="Your password" />
-						</div>
-						
-						<div class="f-row">
-							<input type="checkbox" />
-							<label>Remember me next time</label>
-						</div>
-						
-						<div class="f-row bwrap">
-							<input type="submit" value="login" />
-						</div>
-						<p><a href="#">Forgotten password?</a></p>
-						<p>Dont have an account yet? <a href="register.html">Sign up.</a></p>
+						<form action="#" th:action="@{/login}" th:object="${user}" method="post">
+							<div class="f-row">
+								<input type="text" placeholder="Your username" th:field="*{username}" />
+							</div>
+							<div class="f-row">
+								<input type="password" placeholder="Your password" th:field="*{password}" />
+							</div>
+
+							<div class="f-row bwrap">
+								<input type="submit" value="login" />
+							</div>
+							<p><a href="#">Forgotten password?</a></p>
+							<p>Don't have an account yet? <a th:href="@{/register}">Sign up.</a></p>
+						</form>
 					</div>
 				</section>
 				<!--//content-->
+
 			</div>
 			<!--//row-->
 		</div>
 		<!--//wrap-->
 	</main>
 	<!--//main-->
-	
-	
+
+
 	<!--footer-->
-	<footer class="foot" role="contentinfo">
+	<footer class="foot">
 		<div class="wrap clearfix">
 			<div class="row">
 				<article class="one-half">
@@ -131,40 +93,18 @@
 				<article class="one-fourth">
 					<h5>Need help?</h5>
 					<p>Contact us via phone or email</p>
-					<p><em>T:</em>  +1 555 555 555<br /><em>E:</em>  <a href="#">socialchef@email.com</a></p>
+					<p><em>T:</em>  +1 343 553 4676<br /><em>E:</em>  <a href="saadkiker.k@gmail.com"> socialchef@email.com</a></p>
 				</article>
 				<article class="one-fourth">
-					<h5>Follow us</h5>
-					<ul class="social">
-						<li><a href="#" title="facebook"><i class="fa fa-fw fa-facebook"></i></a></li>
-						<li><a href="#" title="youtube"><i class="fa  fa-fw fa-youtube"></i></a></li>
-						<li><a href="#" title="rss"><i class="fa  fa-fw fa-rss"></i></a></li>
-						<li><a href="#" title="gplus"><i class="fa fa-fw fa-google-plus"></i></a></li>
-						<li><a href="#" title="linkedin"><i class="fa fa-fw fa-linkedin"></i></a></li>
-						<li><a href="#" title="twitter"><i class="fa fa-fw fa-twitter"></i></a></li>
-						<li><a href="#" title="pinterest"><i class="fa fa-fw fa-pinterest-p"></i></a></li>
-						<li><a href="#" title="vimeo"><i class="fa fa-fw fa-vimeo"></i></a></li>
-					</ul>
 				</article>
-				
 				<div class="bottom">
-					<p class="copy">Copyright 2016 SocialChef. All rights reserved</p>
-					
-					<nav class="foot-nav">
-						<ul>
-							<li><a href="index.html" title="Home">Home</a></li>
-							<li><a href="recipes.html" title="Recipes">Recipes</a></li>
-							<li><a href="blog.html" title="Blog">Blog</a></li>
-							<li><a href="contact.html" title="Contact">Contact</a></li>    
-							<li><a href="find_recipe.html" title="Search for recipes">Search for recipes</a></li>
-							<li><a href="login.html" title="Login">Login</a></li>	<li><a href="register.html" title="Register">Register</a></li>													
-						</ul>
-					</nav>
+					<p class="copy">@Copyright 2024 CookShare</p>
 				</div>
 			</div>
 		</div>
 	</footer>
 	<!--//footer-->
+
 	
 	<script src="js/jquery-3.1.0.min.js"></script>
 	<script src="js/jquery.uniform.min.js"></script>

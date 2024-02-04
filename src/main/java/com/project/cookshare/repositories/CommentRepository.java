@@ -1,10 +1,15 @@
 package com.project.cookshare.repositories;
 
 import com.project.cookshare.models.Comment;
+import com.project.cookshare.models.Ingredient;
+import com.project.cookshare.models.Recipe;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
-    // Additional query methods can be defined here
+    List<Comment> findByRecipe(Recipe recipe);
+
 }

@@ -5,6 +5,7 @@ import com.project.cookshare.models.User;
 import com.project.cookshare.repositories.UserRepository;
 import com.project.cookshare.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import static com.project.cookshare.mapper.UserMapper.mapToUserDTO;
@@ -60,4 +61,5 @@ public class UserServiceImplementation implements UserService {
         // TODO: Handle the case where the user is not found
         return mapToUserDTO(user);
     }
+
 }

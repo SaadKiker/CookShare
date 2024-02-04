@@ -19,6 +19,7 @@ public interface RecipeService {
     RecipeDTO findRecipeByName(String recipeName);
     List<RecipeDTO> getAllRecipes();
     List<InstructionStepDTO> getAllInstructions(String title);
+    List<RecipeDTO> getRecipesByCategory(String category);
 
 
 }
