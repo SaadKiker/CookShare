@@ -22,6 +22,4 @@ public class Category {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @ManyToMany(mappedBy = "categories")
-    private Set<Recipe> recipes;
 }

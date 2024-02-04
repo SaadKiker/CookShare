@@ -1,6 +1,8 @@
 package com.project.cookshare.DTOs;
 
 import java.util.Date;
+import java.util.List;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,7 +12,7 @@ public class RecipeDTO {
     private Integer id;
     private String title;
     private String description;
-    private String instructions;
+    private CategoryDTO category;
     private Date created_date;
     private String cooking_time;
     private UserDTO author;

@@ -1,8 +1,12 @@
 package com.project.cookshare.services.implementations;
 
+import com.project.cookshare.DTOs.InstructionStepDTO;
 import com.project.cookshare.DTOs.RecipeDTO;
+import com.project.cookshare.mapper.InstructionStepMapper;
 import com.project.cookshare.mapper.RecipeMapper;
+import com.project.cookshare.models.InstructionStep;
 import com.project.cookshare.models.Recipe;
+import com.project.cookshare.repositories.InstructionStepRepository;
 import com.project.cookshare.repositories.RecipeRepository;
 import com.project.cookshare.services.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +20,12 @@ import static com.project.cookshare.mapper.RecipeMapper.mapToRecipeDTO;
 public class RecipeServiceImplementation implements RecipeService {
 
     private final RecipeRepository recipeRepository;
+    private final InstructionStepRepository instructionStepRepository;
 
     @Autowired
-    public RecipeServiceImplementation(RecipeRepository recipeRepository) {
+    public RecipeServiceImplementation(RecipeRepository recipeRepository, InstructionStepRepository instructionStepRepository) {
         this.recipeRepository = recipeRepository;
+        this.instructionStepRepository = instructionStepRepository;
     }
 
     @Override
@@ -38,7 +44,6 @@ public class RecipeServiceImplementation implements RecipeService {
         recipeRepository.save(existingRecipe);
     }
 
-
     @Override
     public void deleteRecipe(Integer recipeId) {
         recipeRepository.deleteById(recipeId);
@@ -52,9 +57,22 @@ public class RecipeServiceImplementation implements RecipeService {
     }
 
     @Override
+    public RecipeDTO findRecipeByName(String title) {
+        Recipe recipe = recipeRepository.findByTitle(title);
+        return mapToRecipeDTO(recipe);
+    }
+
+    @Override
     public List<RecipeDTO> getAllRecipes() {
         List<Recipe> recipes = recipeRepository.findAll();
         return recipes.stream().map(RecipeMapper::mapToRecipeDTO).collect(Collectors.toList());
 
+    }
+
+    @Override
+    public List<InstructionStepDTO> getAllInstructions(String title) {
+        Recipe recipe = recipeRepository.findByTitle(title);
+        List<InstructionStep> instructions = instructionStepRepository.findByRecipe(recipe);
+        return instructions.stream().map(InstructionStepMapper::mapToInstructionStepDTO).collect(Collectors.toList());
     }
 }

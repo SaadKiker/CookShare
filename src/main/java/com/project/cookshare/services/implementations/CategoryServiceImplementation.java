@@ -24,19 +24,6 @@ public class CategoryServiceImplementation implements CategoryService {
         this.recipeRepository = recipeRepository;
     }
 
-    @Override
-    public void addRecipeToCategory(Integer recipeId, Integer category_id) {
-        Recipe recipe = recipeRepository.findById(recipeId)
-                .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
-        categoryRepository.addRecipeToCategory(recipeId, category_id);
-    }
-
-    @Override
-    public void removeRecipeFromCategory(Integer recipeId, Integer category_id) {
-        Recipe recipe = recipeRepository.findById(recipeId)
-                .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
-        categoryRepository.removeRecipeFromCategory(recipeId, category_id);
-    }
 
     @Override
     public CategoryDTO findCategoryByName(String categoryName) {

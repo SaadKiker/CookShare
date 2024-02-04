@@ -23,9 +23,6 @@ public class Recipe {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String instructions;
-
     @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date created_date;
@@ -36,9 +33,8 @@ public class Recipe {
     @Column
     private String image;
 
-    @ManyToOne
-    @JoinColumn(name = "author_id", nullable = false)
-    private User author;
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
+    private Set<InstructionStep> instruction_step;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
     private Set<Comment> comments;
@@ -49,11 +45,13 @@ public class Recipe {
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
     private Set<Favorite> favorites;
 
-    @ManyToMany
-    @JoinTable(
-            name = "recipeCategory",
-            joinColumns = @JoinColumn(name = "recipe_id"),
-            inverseJoinColumns = @JoinColumn(name = "category_id")
-    )
-    private Set<Category> categories;
+
+    @ManyToOne
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
+
 }
