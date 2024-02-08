@@ -121,5 +121,18 @@ public class RecipeController {
         return "submit_recipe";
     }
 
+    @GetMapping("/find_recipe")
+    public String findRecipeForm(Model model) {
+        List<RecipeDTO> recipes = recipeService.getAllRecipes();
+
+        List<CategoryDTO> categories = categoryRepository.findAll().stream()
+                .map(CategoryMapper::mapToCategoryDTO) // Assuming you have this mapper method
+                .collect(Collectors.toList());
+
+        model.addAttribute("recipes", recipes);
+        model.addAttribute("categories", categories); // Add categories to the model
+
+        return "find_recipe";
+    }
 
 }
