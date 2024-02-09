@@ -10,7 +10,7 @@ import java.util.List;
 public interface RecipeService {
 
     // Class Diagram Methods
-    void addRecipe(RecipeDTO recipeDTO);
+    void addRecipe(Recipe recipe, int userId);
     void updateRecipe(RecipeDTO recipeDTO);
     void deleteRecipe(Integer recipeId);
 

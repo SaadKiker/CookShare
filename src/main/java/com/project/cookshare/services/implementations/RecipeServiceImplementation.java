@@ -6,8 +6,10 @@ import com.project.cookshare.mapper.InstructionStepMapper;
 import com.project.cookshare.mapper.RecipeMapper;
 import com.project.cookshare.models.InstructionStep;
 import com.project.cookshare.models.Recipe;
+import com.project.cookshare.models.User;
 import com.project.cookshare.repositories.InstructionStepRepository;
 import com.project.cookshare.repositories.RecipeRepository;
+import com.project.cookshare.repositories.UserRepository;
 import com.project.cookshare.services.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,16 +23,21 @@ public class RecipeServiceImplementation implements RecipeService {
 
     private final RecipeRepository recipeRepository;
     private final InstructionStepRepository instructionStepRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public RecipeServiceImplementation(RecipeRepository recipeRepository, InstructionStepRepository instructionStepRepository) {
+    public RecipeServiceImplementation(RecipeRepository recipeRepository, InstructionStepRepository instructionStepRepository, UserRepository userRepository) {
         this.recipeRepository = recipeRepository;
         this.instructionStepRepository = instructionStepRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
-    public void addRecipe(RecipeDTO recipeDTO) {
-        Recipe recipe = RecipeMapper.mapToRecipeEntity(recipeDTO);
+    public void addRecipe(Recipe recipe, int userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        recipe.setAuthor(user); // Assuming you have a method to set the recipe's author
+        user.setRecipesSubmitted(user.getRecipesSubmitted() + 1);
+        userRepository.save(user);
         recipeRepository.save(recipe);
     }
 

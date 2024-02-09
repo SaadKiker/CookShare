@@ -2,10 +2,10 @@ package com.project.cookshare.services.implementations;
 
 import com.project.cookshare.DTOs.*;
 import com.project.cookshare.models.User;
+import com.project.cookshare.repositories.RecipeRepository;
 import com.project.cookshare.repositories.UserRepository;
 import com.project.cookshare.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import static com.project.cookshare.mapper.UserMapper.mapToUserDTO;
@@ -15,10 +15,12 @@ import static com.project.cookshare.mapper.UserMapper.mapToUserEntity;
 public class UserServiceImplementation implements UserService {
 
     private final UserRepository userRepository;
+    private final RecipeRepository recipeRepository;
 
     @Autowired
-    public UserServiceImplementation(UserRepository userRepository) {
+    public UserServiceImplementation(UserRepository userRepository, RecipeRepository recipeRepository) {
         this.userRepository = userRepository;
+        this.recipeRepository = recipeRepository;
     }
 
     // Class Diagram Methods
@@ -30,6 +32,11 @@ public class UserServiceImplementation implements UserService {
         // TODO: Encrypt the password before saving
         user.setPassword(password);
         userRepository.save(user);
+    }
+
+    @Override
+    public int calculateRecipesSubmittedByUser(int userId) {
+        return recipeRepository.countByAuthorId(userId);
     }
 
     @Override
@@ -58,7 +65,6 @@ public class UserServiceImplementation implements UserService {
     @Override
     public UserDTO findUserByUsername(String username) {
         User user = userRepository.findByUsername(username);
-        // TODO: Handle the case where the user is not found
         return mapToUserDTO(user);
     }
 

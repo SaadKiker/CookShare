@@ -12,4 +12,5 @@ public interface UserService {
 
     // Additional Methods
     UserDTO findUserByUsername(String username);
+    int calculateRecipesSubmittedByUser(int userId);
 }

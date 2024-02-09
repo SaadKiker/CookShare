@@ -47,7 +47,8 @@ public class RecipeController {
                 .collect(Collectors.toList());
 
         model.addAttribute("recipes", recipes);
-        model.addAttribute("categories", categories); // Add categories to the model
+        model.addAttribute("categories", categories);
+        model.addAttribute("selectedCategory", "All Recipes");
 
         return "recipes";
     }
@@ -91,21 +92,18 @@ public class RecipeController {
 
     @GetMapping("/recipes/{category}")
     public String listRecipesByCategory(@PathVariable("category") String categoryName, Model model) {
-        // Assuming you have a method in your service to fetch recipes by category name
-        // This method needs to be implemented in your service layer
+
         List<RecipeDTO> recipesByCategory = recipeService.getRecipesByCategory(categoryName);
 
-        // Fetch all categories to display in the sidebar or category list
         List<CategoryDTO> categories = categoryRepository.findAll().stream()
-                .map(CategoryMapper::mapToCategoryDTO) // Assuming you have this mapper method
+                .map(CategoryMapper::mapToCategoryDTO)
                 .collect(Collectors.toList());
 
-        // Add filtered recipes and all categories to the model
         model.addAttribute("recipes", recipesByCategory);
         model.addAttribute("categories", categories);
-        model.addAttribute("selectedCategory", categoryName); // Optionally mark the selected category for highlighting in UI
+        model.addAttribute("selectedCategory", categoryName);
 
-        return "recipes"; // Assuming "recipes" is the name of your template for listing recipes
+        return "recipes";
     }
 
     @GetMapping("/submit_recipe")

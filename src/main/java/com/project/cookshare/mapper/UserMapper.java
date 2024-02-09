@@ -10,7 +10,8 @@ public class UserMapper {
                 .id(user.getId())
                 .name(user.getName())
                 .username(user.getUsername())
-                .password(user.getUsername())
+                .password(user.getPassword())
+                .recipesSubmitted(user.getRecipesSubmitted())
                 .build();
     }
 
@@ -19,7 +20,8 @@ public class UserMapper {
                 .id(user.getId())
                 .name(user.getName())
                 .username(user.getUsername())
-                .password(user.getUsername())
+                .password(user.getPassword())
+                .recipesSubmitted(user.getRecipesSubmitted())
                 .build();
     }
 }

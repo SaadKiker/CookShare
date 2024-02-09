@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
+
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +13,9 @@
 	<link rel="stylesheet" href="/css/style.css" />
 	<link rel="stylesheet" href="/css/icons.css" />
 	<link href="http://fonts.googleapis.com/css?family=Raleway:400,300,500,600,700,800" rel="stylesheet">
-	<link rel="shortcut icon" href="images/favicon.ico" />
+	<link rel="shortcut icon" href="/assets/favicon.ico" />
+	<link rel="stylesheet" href="https://use.fontawesome.com/e808bf9397.css" media="all">
+
 
 </head>
 <body>
@@ -38,8 +41,7 @@
 		</div>
 	</header>
 	<!--//header-->
-		
-	<!--main-->
+
 	<main class="main" role="main">
 		<!--wrap-->
 		<div class="wrap clearfix">
@@ -49,6 +51,10 @@
 				<section class="content center full-width">
 					<div class="modal container">
 						<h3>Login</h3>
+						<!-- Display login error message -->
+						<div th:if="${loginError}" class="alert alert-danger" role="alert">
+							<p th:text="${loginError}"></p>
+						</div>
 						<form action="#" th:action="@{/login}" th:object="${user}" method="post">
 							<div class="f-row">
 								<input type="text" placeholder="Your username" th:field="*{username}" />

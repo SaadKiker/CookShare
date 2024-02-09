@@ -13,5 +13,6 @@ import java.util.List;
 public interface RecipeRepository extends JpaRepository<Recipe, Integer> {
     Recipe findByTitle(String title);
     List<Recipe> findByCategoryName(String categoryName);
+    int countByAuthorId(int authorId);
 
 }
