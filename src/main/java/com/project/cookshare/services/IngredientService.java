@@ -13,7 +13,11 @@ public interface IngredientService {
 
     // Additional Methods
     IngredientDTO findIngredientByName(String ingredientName);
+    IngredientDTO findIngredientById(Integer id);
+
     List<Ingredient> getAllIngredients();
     List<Ingredient> FilterIngredients(String filter);
+    List<Ingredient> findByRecipeId(Integer Id);
+
 
 }

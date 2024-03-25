@@ -39,6 +39,12 @@ public class IngredientServiceImplementation implements IngredientService {
     }
 
     @Override
+    public IngredientDTO findIngredientById(Integer id) {
+        Ingredient ingredient = ingredientRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Ingredient not found"));
+        return IngredientMapper.mapToIngredientDTO(ingredient);    }
+
+    @Override
     public List<Ingredient> getAllIngredients() {
         return ingredientRepository.findAll();
     }
@@ -49,5 +55,10 @@ public class IngredientServiceImplementation implements IngredientService {
                 .stream()
                 .filter(ingredient -> ingredient.getName().contains(filter))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Ingredient> findByRecipeId(Integer id) {
+        return ingredientRepository.findByRecipeId(id);
     }
 }

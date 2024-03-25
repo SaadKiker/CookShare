@@ -35,6 +35,20 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    public boolean registerUser(UserDTO userDTO) {
+        boolean result = true;
+        User user = new User();
+        user.setName(userDTO.getName());
+        user.setUsername(userDTO.getUsername());
+        // TODO: Encrypt the password before saving
+        user.setPassword(userDTO.getPassword());
+        user.setRecipesSubmitted(0);
+        userRepository.save(user);
+        return result;
+    }
+
+
+    @Override
     public int calculateRecipesSubmittedByUser(int userId) {
         return recipeRepository.countByAuthorId(userId);
     }

@@ -10,5 +10,5 @@ public class UserDTO {
     private String name;
     private String username;
     private String password;
-    private Integer recipesSubmitted;
+    private Integer recipesSubmitted = 0;
 }

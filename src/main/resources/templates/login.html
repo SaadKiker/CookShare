@@ -30,15 +30,15 @@
 		<!--wrap-->
 		<div class="wrap clearfix">
 			<a href="recipes.html" title="SocialChef" class="logo"><img src="/assets/ico/logo.png" alt="SocialChef logo" /></a>
-
-			<nav class="user-nav" role="navigation">
-				<ul>
-					<li class="light"><a href="find_recipe.html" title="Search for recipes"><i class="icon icon-themeenergy_search"></i> <span>Search for recipes</span></a></li>
-					<li class="medium"><a href="my_profile.html" title="My account"><i class="icon icon-themeenergy_chef-hat"></i> <span>My account</span></a></li>
-					<li class="dark"><a href="submit_recipe.html" title="Submit a recipe"><i class="icon icon-themeenergy_fork-spoon"></i> <span>Submit a recipe</span></a></li>
-				</ul>
-			</nav>
 		</div>
+		<style>
+			.logo {
+				display: block;
+				margin: 22px 50px 23px 480px; /* Adjusts the margin */
+				position: relative;
+				z-index: 99999;
+			}
+		</style>
 	</header>
 	<!--//header-->
 
@@ -62,12 +62,12 @@
 							<div class="f-row">
 								<input type="password" placeholder="Your password" th:field="*{password}" />
 							</div>
-
 							<div class="f-row bwrap">
 								<input type="submit" value="login" />
 							</div>
-							<p><a href="#">Forgotten password?</a></p>
+							<br>
 							<p>Don't have an account yet? <a th:href="@{/register}">Sign up.</a></p>
+
 						</form>
 					</div>
 				</section>
@@ -86,13 +86,13 @@
 		<div class="wrap clearfix">
 			<div class="row">
 				<article class="one-half">
-					<h5>About SocialChef Community</h5>
-					<p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci.</p>
+					<h5>About CookShare</h5>
+					<p>CookShare is where food lovers unite to exchange recipes and culinary insights. Our platform is a melting pot of flavors, offering a simple yet powerful way to share your cooking adventures and explore new dishes. Dive into a world where each recipe tells a story, and discover the joy of cooking together. Join CookShare – where every meal is a shared experience.</p>
 				</article>
 				<article class="one-fourth">
 					<h5>Need help?</h5>
 					<p>Contact us via phone or email</p>
-					<p><em>T:</em>  +1 343 553 4676<br /><em>E:</em>  <a href="mailto:saadkiker.k@gmail.com"> socialchef@email.com</a></p>
+					<p><em>T:</em>  +1 343 553 4676<br /><em>E:</em>  <a href="mailto:saadkiker.k@gmail.com">cookshare@email.com</a></p>
 				</article>
 				<article class="one-fourth">
 				</article>

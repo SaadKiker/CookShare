@@ -26,7 +26,7 @@ public class User {
     private String password;
 
     @Column(name = "recipes_submitted")
-    private int recipesSubmitted;
+    private int recipesSubmitted = 0;
 
     // Mapping to comments, recipes, ratings, and favorites
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)

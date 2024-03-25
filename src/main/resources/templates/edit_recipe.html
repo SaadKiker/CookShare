@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="keywords" content="SocialChef - Social Recipe HTML Template" />
+	<meta name="description" content="SocialChef - Social Recipe HTML Template">
+	<meta name="author" content="themeenergy.com">
+	
+	<title>SocialChef</title>
+	
+	<link rel="stylesheet" href="/css/style.css" />
+	<link rel="stylesheet" href="/css/icons.css" />
+	<link href="http://fonts.googleapis.com/css?family=Raleway:400,300,500,600,700,800" rel="stylesheet">
+	<link rel="shortcut icon" href="/assets/favicon.ico" />
+	<link rel="stylesheet" href="https://use.fontawesome.com/e808bf9397.css" media="all">
+
+
+</head>
+<body>
+	<!--preloader-->
+	<div class="preloader">
+		<div class="spinner"></div>
+	</div>
+	<!--//preloader-->
+
+	<!--header-->
+	<header class="head" role="banner">
+		<!--wrap-->
+		<div class="wrap clearfix">
+			<a th:href="@{/recipes}" title="SocialChef" class="logo"><img src="/assets/ico/logo.png" alt="SocialChef logo" /></a>
+			<nav class="user-nav" role="navigation">
+				<ul>
+					<li class="medium"><a th:href="@{/profile}" title="My account"><i class="icon icon-themeenergy_chef-hat"></i> <span>My account</span></a></li>
+					<li class="dark"><a th:href="@{/submit_recipe}" title="Submit a recipe"><i class="icon icon-themeenergy_fork-spoon"></i> <span>Submit a recipe</span></a></li>
+				</ul>
+			</nav>
+		</div>
+	</header>
+	<!--//header-->
+
+	<!--main-->
+	<main class="main" role="main">
+		<div class="wrap clearfix">
+			<div class="row">
+				<section class="content full-width">
+					<div class="submit_recipe container">
+						<form th:action="@{/editRecipe}" th:object="${recipe}" method="post" enctype="multipart/form-data">
+							<!-- Recipe details -->
+							<section>
+								<h2>Recipe Details</h2>
+								<div class="f-row">
+									<div class="full"><input type="text" th:field="*{title}" placeholder="Recipe title" required /></div>
+								</div>
+								<div class="f-row">
+									<div class="full"><textarea th:field="*{description}" placeholder="Description" required></textarea></div>
+								</div>
+								<div class="f-row">
+									<div class="half"><input type="text" th:field="*{cooking_time}" placeholder="Cooking time (minutes)" required /></div>
+								</div>
+								<div class="f-row">
+									<div class="full"><input type="text" th:field="*{image}" placeholder="Enter image URL" /></div>
+								</div>
+								<input type="hidden" th:field="*{id}" />
+								<div class="f-row">
+									<div class="full">
+										<select th:field="*{category}" required>
+											<option value="">Select a category</option>
+											<th:block th:each="category : ${categories}">
+												<option th:value="${category.id}" th:selected="${recipe.category.id == category.id}" th:text="${category.name}"></option>
+											</th:block>
+										</select>
+									</div>
+								</div>
+							</section>
+
+							<!-- Ingredients Section -->
+							<section>
+								<h2>Ingredients</h2>
+								<div id="ingredients-container">
+									<div th:each="ingredient, iterStat : ${ingredients}" class="f-row ingredient"> <!-- Changed from *{ingredients} to ${ingredients} -->
+										<div class="half"><input type="text" th:value="${ingredient.name}" name="ingredientNames" placeholder="Ingredient name" /></div>
+										<div class="half"><input type="text" th:value="${ingredient.quantity}" name="ingredientQuantities" placeholder="Quantity" /></div>
+										<div class="remove"><button type="button" class="remove-ingredient">-</button></div>
+									</div>
+								</div>
+								<button type="button" id="add-ingredient">Add Ingredient</button>
+							</section>
+
+
+							<!-- Instructions Section -->
+							<section>
+								<h2>Instructions</h2>
+								<div id="instructions-container">
+									<!-- Use ${instructionSteps} to refer to the instruction steps added to the model -->
+									<div th:each="instruction, iterStat : ${instructionSteps}" class="f-row instruction">
+										<div class="full">
+											<textarea name="instructionSteps" placeholder="Instruction step" th:text="${instruction.instruction}"></textarea>
+										</div>
+										<div class="remove"><button type="button" class="remove-instruction">-</button></div>
+									</div>
+								</div>
+								<button type="button" id="add-instruction">Add Instruction</button>
+							</section>
+
+
+							<!-- Save Changes Button -->
+							<div class="f-row full">
+								<input type="submit" class="button" value="Save Changes" />
+							</div>
+
+							<script>
+								document.addEventListener('DOMContentLoaded', function () {
+									const attachRemoveEventToButton = (button) => {
+										button.addEventListener('click', function () {
+											this.closest('.f-row').remove();
+										});
+									};
+
+									document.getElementById('add-ingredient').addEventListener('click', function () {
+										var container = document.getElementById('ingredients-container');
+										var newIngredient = document.querySelector('.ingredient:first-child').cloneNode(true);
+										newIngredient.querySelectorAll('input').forEach(input => input.value = ''); // Clear input fields
+										container.appendChild(newIngredient);
+										attachRemoveEventToButton(newIngredient.querySelector('.remove-ingredient'));
+									});
+
+									document.getElementById('add-instruction').addEventListener('click', function () {
+										var container = document.getElementById('instructions-container');
+										var newInstruction = document.querySelector('.instruction:first-child').cloneNode(true);
+										newInstruction.querySelector('textarea').value = ''; // Clear textarea
+										// Ensure the name attribute is correctly set for the new instruction
+										newInstruction.querySelector('textarea').setAttribute('name', 'instructionSteps');
+										container.appendChild(newInstruction);
+										attachRemoveEventToButton(newInstruction.querySelector('.remove-instruction'));
+									});
+
+									// Attach event to existing buttons
+									document.querySelectorAll('.remove-ingredient').forEach(button => {
+										attachRemoveEventToButton(button);
+									});
+
+									document.querySelectorAll('.remove-instruction').forEach(button => {
+										attachRemoveEventToButton(button);
+									});
+								});
+
+							</script>
+
+						</form>
+					</div>
+				</section>
+			</div>
+		</div>
+	</main>
+	<!-- //main -->
+
+
+	<!--//main-->
+
+	<!--footer-->
+	<footer class="foot">
+		<div class="wrap clearfix">
+			<div class="row">
+				<article class="one-half">
+					<h5>About CookShare</h5>
+					<p>CookShare is where food lovers unite to exchange recipes and culinary insights. Our platform is a melting pot of flavors, offering a simple yet powerful way to share your cooking adventures and explore new dishes. Dive into a world where each recipe tells a story, and discover the joy of cooking together. Join CookShare – where every meal is a shared experience.</p>
+				</article>
+				<article class="one-fourth">
+					<h5>Need help?</h5>
+					<p>Contact us via phone or email</p>
+					<p><em>T:</em>  +1 343 553 4676<br /><em>E:</em>  <a href="mailto:saadkiker.k@gmail.com">cookshare@email.com</a></p>
+				</article>
+				<article class="one-fourth">
+				</article>
+				<div class="bottom">
+					<p class="copy">@Copyright 2024 CookShare</p>
+				</div>
+			</div>
+		</div>
+	</footer>
+	<!--//footer-->
+
+	<script src="/js/jquery-3.1.0.min.js"></script>
+	<script src="/js/jquery.uniform.min.js"></script>
+	<script src="/js/jquery.slicknav.min.js"></script>
+	<script src="/js/scripts.js"></script>
+</body>
+</html>
+
+

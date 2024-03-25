@@ -2,6 +2,7 @@ package com.project.cookshare.services.implementations;
 
 import com.project.cookshare.DTOs.InstructionStepDTO;
 import com.project.cookshare.DTOs.RecipeDTO;
+import com.project.cookshare.DTOs.UserDTO;
 import com.project.cookshare.mapper.InstructionStepMapper;
 import com.project.cookshare.mapper.RecipeMapper;
 import com.project.cookshare.models.InstructionStep;
@@ -57,10 +58,19 @@ public class RecipeServiceImplementation implements RecipeService {
     }
 
     @Override
-    public RecipeDTO findRecipeById(Integer recipeId) {
+    public void saveRecipe(Recipe recipe, int userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        recipe.setAuthor(user); // Assuming you have a method to set the recipe's author
+        recipeRepository.save(recipe);
+        userRepository.save(user);
+
+    }
+
+    @Override
+    public Recipe findRecipeById(Integer recipeId) {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found"));
-        return mapToRecipeDTO(recipe);
+        return recipe;
     }
 
     @Override
@@ -87,6 +97,15 @@ public class RecipeServiceImplementation implements RecipeService {
     public List<RecipeDTO> getRecipesByCategory(String categoryName) {
         // Fetch recipes by category name
         List<Recipe> recipes = recipeRepository.findByCategoryName(categoryName);
+        // Use the mapper to convert each Recipe entity to a RecipeDTO
+        return recipes.stream()
+                .map(RecipeMapper::mapToRecipeDTO) // Assuming the method to convert to DTO is called toDto
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<RecipeDTO> getRecipesByAuthor(User author) {
+        List<Recipe> recipes = recipeRepository.findByAuthor(author);
         // Use the mapper to convert each Recipe entity to a RecipeDTO
         return recipes.stream()
                 .map(RecipeMapper::mapToRecipeDTO) // Assuming the method to convert to DTO is called toDto
