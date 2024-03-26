@@ -21,8 +21,7 @@ public class CommentServiceImplementation implements CommentService {
     }
 
     @Override
-    public void addComment(CommentDTO commentDTO) {
-        Comment comment = CommentMapper.mapToCommentEntity(commentDTO);
+    public void addComment(Comment comment) {
         commentRepository.save(comment);
     }
 

@@ -10,24 +10,20 @@ import com.project.cookshare.repositories.CategoryRepository;
 import com.project.cookshare.repositories.CommentRepository;
 import com.project.cookshare.repositories.IngredientRepository;
 import com.project.cookshare.repositories.InstructionStepRepository;
-import com.project.cookshare.services.CategoryService;
-import com.project.cookshare.services.IngredientService;
-import com.project.cookshare.services.InstructionStepService;
+import com.project.cookshare.services.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import com.project.cookshare.DTOs.RecipeDTO;
-import com.project.cookshare.services.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,9 +36,13 @@ public class RecipeController {
     private final InstructionStepRepository instructionStepRepository;
     private final IngredientRepository ingredientRepository;
     private final CommentRepository commentRepository;
+    private final RatingService ratingService;
+    private final UserService userService;
+    private final CommentService commentService;
+
 
     @Autowired
-    public RecipeController(RecipeService recipeService, CategoryService categoryService, IngredientService ingredientService, InstructionStepService instructionStepService, CategoryRepository categoryRepository, InstructionStepRepository instructionStepRepository, IngredientRepository ingredientRepository, CommentRepository commentRepository) {
+    public RecipeController(RecipeService recipeService, CategoryService categoryService, IngredientService ingredientService, InstructionStepService instructionStepService, CategoryRepository categoryRepository, InstructionStepRepository instructionStepRepository, IngredientRepository ingredientRepository, CommentRepository commentRepository, RatingService ratingService, UserService userService, CommentService commentService) {
         this.recipeService = recipeService;
         this.ingredientService = ingredientService;
         this.instructionStepService = instructionStepService;
@@ -50,17 +50,30 @@ public class RecipeController {
         this.instructionStepRepository = instructionStepRepository;
         this.ingredientRepository = ingredientRepository;
         this.commentRepository = commentRepository;
+        this.ratingService = ratingService;
+        this.userService = userService;
+        this.commentService = commentService;
     }
 
     @GetMapping("/recipes")
     public String listRecipes(Model model) {
         List<RecipeDTO> recipes = recipeService.getAllRecipes();
+        Map<Integer, Integer> likesMap = new HashMap<>();
+
+        // Assuming you have a method in your service to get likes for all recipes
+        for (RecipeDTO recipe : recipes) {
+            Rating rating = ratingService.findRatingByRecipeId(recipe.getId());
+            // Assuming that if there's no rating, the number of likes is 0
+            int likes = (rating != null) ? rating.getLikes() : 0;
+            likesMap.put(recipe.getId(), likes);
+        }
 
         List<CategoryDTO> categories = categoryRepository.findAll().stream()
-                .map(CategoryMapper::mapToCategoryDTO) // Assuming you have this mapper method
+                .map(CategoryMapper::mapToCategoryDTO)
                 .collect(Collectors.toList());
 
         model.addAttribute("recipes", recipes);
+        model.addAttribute("likesMap", likesMap);
         model.addAttribute("categories", categories);
         model.addAttribute("selectedCategory", "All Recipes");
 
@@ -71,6 +84,7 @@ public class RecipeController {
     public String getRecipeByName(@PathVariable("title") String title, Model model) {
         RecipeDTO recipeDTO = recipeService.findRecipeByName(title);
         Recipe recipe = RecipeMapper.mapToRecipeEntity(recipeDTO);
+
 
         // Fetching instruction steps
         List<InstructionStepDTO> instructionSteps = instructionStepRepository.findByRecipe(recipe).stream()
@@ -93,6 +107,10 @@ public class RecipeController {
                 .map(CategoryMapper::mapToCategoryDTO) // Assuming you have this mapper method
                 .collect(Collectors.toList());
 
+        Rating rating = ratingService.findRatingByRecipeId(recipe.getId());
+        int likes = (rating != null) ? rating.getLikes() : 0;
+        int dislikes = (rating != null) ? rating.getDislikes() : 0;
+
         // Adding attributes to the model
         model.addAttribute("recipe", recipeDTO);
         model.addAttribute("instructionSteps", instructionSteps);
@@ -100,8 +118,54 @@ public class RecipeController {
         model.addAttribute("comments", comments);
         model.addAttribute("totalComments", comments.size());
         model.addAttribute("categories", categories); // Add categories to the model
+        model.addAttribute("likes", likes);
+        model.addAttribute("dislikes", dislikes);
 
         return "recipe";
+    }
+
+
+    @PostMapping("/recipe/{title}")
+    public String handleRecipeActions(
+            @PathVariable String title,
+            @RequestParam(required = false) String commentText, // Matches textarea name
+            @RequestParam(required = false) String action, // Matches hidden input name
+            HttpServletRequest request) { // Use HttpServletRequest to access session
+
+        // Check if recipe exists
+        RecipeDTO recipeDTO = recipeService.findRecipeByName(title);
+
+        // Get user from session
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+
+        if (user == null) {
+            // User is not authenticated
+            return "redirect:/login";
+        }
+
+        if ("comment".equals(action)) {
+            if (commentText == null || commentText.trim().isEmpty()) {
+                return "redirect:/recipe/{title}";
+            }
+
+            // Save comment
+            Comment comment = new Comment();
+            comment.setContent(commentText);
+            comment.setRecipe(RecipeMapper.mapToRecipeEntity(recipeDTO)); // Map DTO to entity
+            comment.setAuthor(user); // Set the logged-in user as the author of the comment
+            comment.setPublishDate(new Date());
+            commentService.addComment(comment);
+
+            return "redirect:/recipe/{title}";
+
+        } else if ("like".equals(action) || "dislike".equals(action)) {
+            // Handle likes/dislikes
+            Rating updatedRating = ratingService.updateRating(recipeDTO.getId(), action);
+            Map.of("likes", updatedRating.getLikes(), "dislikes", updatedRating.getDislikes());
+            return "redirect:/recipe/{title}";
+        }
+        return "";
     }
 
     @GetMapping("/recipes/{category}")

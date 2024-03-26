@@ -8,7 +8,7 @@ import java.util.Optional;
 public interface CommentService {
 
     // Class Diagram Methods
-    void addComment(CommentDTO commentDTO);
+    void addComment(Comment comment);
     void editComment(Integer commentId);
     void deleteCommentById(Integer commentId);
 

@@ -40,9 +40,8 @@ public class UserController {
 
     @PostMapping("/login")
     public String loginUser(@ModelAttribute User user, Model model, HttpSession session) {
-        UserDTO existingUserDTO = userService.findUserByUsername(user.getUsername());
-        if (existingUserDTO != null && existingUserDTO.getPassword().equals(user.getPassword())) {
-            User existingUser = UserMapper.mapToUserEntity(existingUserDTO);
+        User existingUser = userService.findUserByUsername(user.getUsername());
+        if (existingUser != null && existingUser.getPassword().equals(user.getPassword())) {
             session.setAttribute("user", existingUser);
             return "redirect:/recipes"; // Redirect to a home page or dashboard
         } else {
@@ -64,7 +63,7 @@ public class UserController {
         if (user != null) {
             // Correctly call the method with the user's ID
             int recipesSubmittedCount = userService.calculateRecipesSubmittedByUser(user.getId());
-            UserDTO userDTO = userService.findUserByUsername(user.getUsername());
+            User userDTO = userService.findUserByUsername(user.getUsername());
             // It might be more appropriate to add this count to the UserDTO or directly to the model
             userDTO.setRecipesSubmitted(recipesSubmittedCount); // Assuming UserDTO has this field
             model.addAttribute("userDTO", userDTO);

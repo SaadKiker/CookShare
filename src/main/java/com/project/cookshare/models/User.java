@@ -35,9 +35,6 @@ public class User {
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
     private Set<Recipe> recipes;
 
-    @OneToMany(mappedBy = "rater", cascade = CascadeType.ALL)
-    private Set<Rating> ratings;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<Favorite> favorites;
 }

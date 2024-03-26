@@ -15,17 +15,33 @@ public class Rating {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false)
-    private Integer score;
+    // Add likes and dislikes fields
+    @Column(nullable = true)
+    private Integer likes = 0; // Initialize with 0
 
-    @Column(nullable = false)
-    private Integer averageScore;
+    @Column(nullable = true)
+    private Integer dislikes = 0; // Initialize with 0
 
     @ManyToOne
     @JoinColumn(name = "recipe_id", nullable = false)
     private Recipe recipe;
 
-    @ManyToOne
-    @JoinColumn(name = "rater_id", nullable = false)
-    private User rater;
+
+    // Setters (Lombok @Data should generate these, but here they are explicitly)
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public void setRecipe(Recipe recipe) {
+        this.recipe = recipe;
+    }
+
+    // Setters for likes and dislikes
+    public void setLikes(Integer likes) {
+        this.likes = likes;
+    }
+
+    public void setDislikes(Integer dislikes) {
+        this.dislikes = dislikes;
+    }
 }

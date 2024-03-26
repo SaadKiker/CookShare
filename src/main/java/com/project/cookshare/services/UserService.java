@@ -1,6 +1,7 @@
 package com.project.cookshare.services;
 
 import com.project.cookshare.DTOs.*;
+import com.project.cookshare.models.User;
 
 public interface UserService {
 
@@ -12,6 +13,6 @@ public interface UserService {
     void deleteAccount(Integer userId);
 
     // Additional Methods
-    UserDTO findUserByUsername(String username);
+    User findUserByUsername(String username);
     int calculateRecipesSubmittedByUser(int userId);
 }

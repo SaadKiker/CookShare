@@ -10,6 +10,4 @@ public class RatingDTO {
     private Integer score;
     private Integer averageScore;
     private RecipeDTO recipe;
-    private UserDTO rater;
-
 }

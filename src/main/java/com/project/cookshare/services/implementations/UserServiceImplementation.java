@@ -77,9 +77,8 @@ public class UserServiceImplementation implements UserService {
 
     // Additional Methods
     @Override
-    public UserDTO findUserByUsername(String username) {
-        User user = userRepository.findByUsername(username);
-        return mapToUserDTO(user);
+    public User findUserByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
 }
