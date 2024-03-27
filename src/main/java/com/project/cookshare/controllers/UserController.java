@@ -3,8 +3,11 @@ package com.project.cookshare.controllers;
 import com.project.cookshare.DTOs.RecipeDTO;
 import com.project.cookshare.DTOs.UserDTO;
 import com.project.cookshare.mapper.UserMapper;
+import com.project.cookshare.models.Rating;
 import com.project.cookshare.models.Recipe;
 import com.project.cookshare.models.User;
+import com.project.cookshare.services.FavoriteService;
+import com.project.cookshare.services.RatingService;
 import com.project.cookshare.services.RecipeService;
 import com.project.cookshare.services.UserService;
 import jakarta.servlet.http.HttpSession;
@@ -18,18 +21,23 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class UserController {
     private final UserService userService;
     private final RecipeService recipeService;
+    private final RatingService ratingService;
+    private final FavoriteService favoriteService;
 
     @Autowired
-    public UserController(UserService userService, RecipeService recipeService) {
+    public UserController(UserService userService, RecipeService recipeService, RatingService ratingService, FavoriteService favoriteService) {
         this.userService = userService;
         this.recipeService = recipeService;
+        this.ratingService = ratingService;
+        this.favoriteService = favoriteService;
     }
 
     @GetMapping("/login")
@@ -59,7 +67,23 @@ public class UserController {
 
     @GetMapping("/profile")
     public String profile( HttpSession session, Model model) {
+        List<RecipeDTO> recipes = recipeService.getAllRecipes();
         User user = (User) session.getAttribute("user");
+        if (user == null) {
+            // Handle case where user is not logged in or session has expired
+            return "redirect:/login";
+        }
+        Map<Integer, Integer> likesMap = new HashMap<>();
+        List<RecipeDTO> favoriteRecipes = recipeService.getFavoriteRecipesByUser(user.getId());
+
+        // Assuming you have a method in your service to get likes for all recipes
+        for (RecipeDTO recipe : recipes) {
+            Rating rating = ratingService.findRatingByRecipeId(recipe.getId());
+            // Assuming that if there's no rating, the number of likes is 0
+            int likes = (rating != null) ? rating.getLikes() : 0;
+            likesMap.put(recipe.getId(), likes);
+        }
+
         if (user != null) {
             // Correctly call the method with the user's ID
             int recipesSubmittedCount = userService.calculateRecipesSubmittedByUser(user.getId());
@@ -69,9 +93,12 @@ public class UserController {
             model.addAttribute("userDTO", userDTO);
             // Assuming you have a method that fetches the current user based on the login
             // Fetch the recipes that are created by the logged-in user
-            List<RecipeDTO> recipes = recipeService.getRecipesByAuthor(user);
+            recipes = recipeService.getRecipesByAuthor(user);
 
+            model.addAttribute("user", user);
             model.addAttribute("recipes", recipes);
+            model.addAttribute("favoriteRecipes", favoriteRecipes);
+            model.addAttribute("likesMap", likesMap);
         } else {
             // Handle case where user is not logged in or session has expired
             return "redirect:/login";
@@ -103,6 +130,24 @@ public class UserController {
         attributes.addFlashAttribute("message", "Recipe successfully deleted.");
         return "redirect:/profile";
     }
+
+    @PostMapping("/removeFavorite/{id}")
+    public String removeRecipeFromFavorites(@PathVariable("id") int recipeId, HttpSession session, RedirectAttributes attributes) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            // User is not logged in, redirect to login page
+            attributes.addFlashAttribute("error", "You must be logged in to remove favorites.");
+            return "redirect:/login";
+        }
+
+        // Remove the recipe from favorites
+        favoriteService.removeFavorite(recipeId, user.getId());
+
+        // Add a success message and redirect back to the user profile or favorite page
+        attributes.addFlashAttribute("message", "Recipe successfully removed from favorites.");
+        return "redirect:/profile"; // or wherever your favorites are shown
+    }
+
 
     @GetMapping("/contact")
     public String contact(String username, Model model) {

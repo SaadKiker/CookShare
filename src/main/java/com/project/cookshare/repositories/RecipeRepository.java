@@ -1,5 +1,6 @@
 package com.project.cookshare.repositories;
 
+import com.project.cookshare.DTOs.RecipeDTO;
 import com.project.cookshare.DTOs.UserDTO;
 import com.project.cookshare.models.InstructionStep;
 import com.project.cookshare.models.Recipe;
@@ -17,5 +18,4 @@ public interface RecipeRepository extends JpaRepository<Recipe, Integer> {
     List<Recipe> findByCategoryName(String categoryName);
     List<Recipe> findByAuthor(User author);
     int countByAuthorId(int authorId);
-
 }

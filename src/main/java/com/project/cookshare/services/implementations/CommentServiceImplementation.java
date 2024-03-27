@@ -3,6 +3,7 @@ package com.project.cookshare.services.implementations;
 import com.project.cookshare.DTOs.CommentDTO;
 import com.project.cookshare.mapper.CommentMapper;
 import com.project.cookshare.models.Comment;
+import com.project.cookshare.models.Recipe;
 import com.project.cookshare.repositories.CommentRepository;
 import com.project.cookshare.services.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,12 @@ public class CommentServiceImplementation implements CommentService {
     @Override
     public long countComments() {
         return commentRepository.count(); // Assuming you have a JPA repository
+    }
+
+    @Override
+    public int countCommentsByRecipeId(Integer id) {
+        List<Comment> comments = commentRepository.findByRecipeId(id);
+        return comments.size();
     }
 
 }

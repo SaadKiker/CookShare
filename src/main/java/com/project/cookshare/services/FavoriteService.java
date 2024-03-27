@@ -8,9 +8,11 @@ import java.util.Optional;
 public interface FavoriteService {
 
     // Class Diagram Methods
-    Favorite addFavorite(Integer recipeId);
-    void removeFavoriteById(Integer recipeId);
+    boolean addFavorite(Integer recipeId, Integer userId);
 
+    void removeFavorite(Integer recipeId, Integer userId);
+
+    boolean isFavorite(int recipeId, int userId);
     // Additional Methods
     List<Favorite> getAllFavorites();
 

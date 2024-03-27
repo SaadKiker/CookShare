@@ -14,5 +14,6 @@ public interface UserService {
 
     // Additional Methods
     User findUserByUsername(String username);
+    User findUserById(Integer userId);
     int calculateRecipesSubmittedByUser(int userId);
 }

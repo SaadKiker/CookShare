@@ -26,5 +26,5 @@ public interface RecipeService {
     List<RecipeDTO> getRecipesByCategory(String category);
     List<RecipeDTO> getRecipesByAuthor(User author);
 
-
+    List<RecipeDTO> getFavoriteRecipesByUser(Integer userId);
 }

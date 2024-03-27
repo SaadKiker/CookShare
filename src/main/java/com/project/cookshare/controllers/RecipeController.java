@@ -37,12 +37,12 @@ public class RecipeController {
     private final IngredientRepository ingredientRepository;
     private final CommentRepository commentRepository;
     private final RatingService ratingService;
-    private final UserService userService;
+    private final FavoriteService favoriteService;
     private final CommentService commentService;
 
 
     @Autowired
-    public RecipeController(RecipeService recipeService, CategoryService categoryService, IngredientService ingredientService, InstructionStepService instructionStepService, CategoryRepository categoryRepository, InstructionStepRepository instructionStepRepository, IngredientRepository ingredientRepository, CommentRepository commentRepository, RatingService ratingService, UserService userService, CommentService commentService) {
+    public RecipeController(RecipeService recipeService, CategoryService categoryService, IngredientService ingredientService, InstructionStepService instructionStepService, CategoryRepository categoryRepository, InstructionStepRepository instructionStepRepository, IngredientRepository ingredientRepository, CommentRepository commentRepository, RatingService ratingService, FavoriteService favoriteService, CommentService commentService) {
         this.recipeService = recipeService;
         this.ingredientService = ingredientService;
         this.instructionStepService = instructionStepService;
@@ -51,7 +51,7 @@ public class RecipeController {
         this.ingredientRepository = ingredientRepository;
         this.commentRepository = commentRepository;
         this.ratingService = ratingService;
-        this.userService = userService;
+        this.favoriteService = favoriteService;
         this.commentService = commentService;
     }
 
@@ -59,6 +59,7 @@ public class RecipeController {
     public String listRecipes(Model model) {
         List<RecipeDTO> recipes = recipeService.getAllRecipes();
         Map<Integer, Integer> likesMap = new HashMap<>();
+        Map<Integer, Integer> commentsMap = new HashMap<>();
 
         // Assuming you have a method in your service to get likes for all recipes
         for (RecipeDTO recipe : recipes) {
@@ -68,12 +69,20 @@ public class RecipeController {
             likesMap.put(recipe.getId(), likes);
         }
 
+        // Populate the comments map for each recipe
+        for (RecipeDTO recipe : recipes) {
+            long commentsCount = commentService.countCommentsByRecipeId(recipe.getId());
+            int commentsInt = (int) commentsCount;
+            commentsMap.put(recipe.getId(), commentsInt);
+        }
+
         List<CategoryDTO> categories = categoryRepository.findAll().stream()
                 .map(CategoryMapper::mapToCategoryDTO)
                 .collect(Collectors.toList());
 
         model.addAttribute("recipes", recipes);
         model.addAttribute("likesMap", likesMap);
+        model.addAttribute("commentsMap", commentsMap);
         model.addAttribute("categories", categories);
         model.addAttribute("selectedCategory", "All Recipes");
 
@@ -81,10 +90,12 @@ public class RecipeController {
     }
 
     @GetMapping("/recipe/{title}")
-    public String getRecipeByName(@PathVariable("title") String title, Model model) {
+    public String getRecipeByName(@PathVariable("title") String title, Model model, HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+
         RecipeDTO recipeDTO = recipeService.findRecipeByName(title);
         Recipe recipe = RecipeMapper.mapToRecipeEntity(recipeDTO);
-
 
         // Fetching instruction steps
         List<InstructionStepDTO> instructionSteps = instructionStepRepository.findByRecipe(recipe).stream()
@@ -111,6 +122,10 @@ public class RecipeController {
         int likes = (rating != null) ? rating.getLikes() : 0;
         int dislikes = (rating != null) ? rating.getDislikes() : 0;
 
+        boolean isFavorite = false;
+        if (user != null) {
+            isFavorite = favoriteService.isFavorite(recipeDTO.getId(), user.getId()); // Ensure this method exists in your service
+        }
         // Adding attributes to the model
         model.addAttribute("recipe", recipeDTO);
         model.addAttribute("instructionSteps", instructionSteps);
@@ -120,6 +135,7 @@ public class RecipeController {
         model.addAttribute("categories", categories); // Add categories to the model
         model.addAttribute("likes", likes);
         model.addAttribute("dislikes", dislikes);
+        model.addAttribute("isFavorite", isFavorite); // Add whether the recipe is a favorite
 
         return "recipe";
     }
@@ -128,50 +144,116 @@ public class RecipeController {
     @PostMapping("/recipe/{title}")
     public String handleRecipeActions(
             @PathVariable String title,
-            @RequestParam(required = false) String commentText, // Matches textarea name
-            @RequestParam(required = false) String action, // Matches hidden input name
-            HttpServletRequest request) { // Use HttpServletRequest to access session
+            @RequestParam(required = false) String commentText,
+            @RequestParam(required = false) String action,
+            HttpServletRequest request,
+            RedirectAttributes redirectAttributes) {
 
-        // Check if recipe exists
-        RecipeDTO recipeDTO = recipeService.findRecipeByName(title);
-
-        // Get user from session
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-
         if (user == null) {
             // User is not authenticated
             return "redirect:/login";
         }
 
+        RecipeDTO recipeDTO = recipeService.findRecipeByName(title);
+        if (recipeDTO == null) {
+            redirectAttributes.addFlashAttribute("error", "Recipe not found");
+            return "redirect:/recipes";
+        }
+
         if ("comment".equals(action)) {
             if (commentText == null || commentText.trim().isEmpty()) {
-                return "redirect:/recipe/{title}";
+                redirectAttributes.addFlashAttribute("error", "Comment cannot be empty");
+                return "redirect:/recipe/" + title;
             }
-
-            // Save comment
+            // Save comment logic
             Comment comment = new Comment();
             comment.setContent(commentText);
-            comment.setRecipe(RecipeMapper.mapToRecipeEntity(recipeDTO)); // Map DTO to entity
-            comment.setAuthor(user); // Set the logged-in user as the author of the comment
+            comment.setRecipe(RecipeMapper.mapToRecipeEntity(recipeDTO));
+            comment.setAuthor(user);
             comment.setPublishDate(new Date());
             commentService.addComment(comment);
-
-            return "redirect:/recipe/{title}";
-
+            redirectAttributes.addFlashAttribute("success", "Comment added successfully");
         } else if ("like".equals(action) || "dislike".equals(action)) {
-            // Handle likes/dislikes
-            Rating updatedRating = ratingService.updateRating(recipeDTO.getId(), action);
-            Map.of("likes", updatedRating.getLikes(), "dislikes", updatedRating.getDislikes());
-            return "redirect:/recipe/{title}";
+            // Like or dislike logic
+            ratingService.updateRating(recipeDTO.getId(), action);
+            redirectAttributes.addFlashAttribute("success", "Your feedback has been recorded");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Invalid action");
         }
-        return "";
+
+        return "redirect:/recipe/" + title;
     }
+
+    @PostMapping("/recipe/{title}/rating")
+    @ResponseBody
+    public ResponseEntity<Map<String, Integer>> handleRatingActions(
+            @PathVariable String title,
+            @RequestParam String action,
+            HttpServletRequest request) {
+
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+        RecipeDTO recipeDTO = recipeService.findRecipeByName(title);
+        if (recipeDTO == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        Rating updatedRating = ratingService.updateRating(recipeDTO.getId(), action);
+        return ResponseEntity.ok(Map.of("likes", updatedRating.getLikes(), "dislikes", updatedRating.getDislikes()));
+    }
+
+    @PostMapping("/recipe/{title}/favorite")
+    @ResponseBody
+    public ResponseEntity<Map<String, Boolean>> handleFavoriteAction(
+            @PathVariable String title,
+            HttpServletRequest request) {
+
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+        RecipeDTO recipeDTO = recipeService.findRecipeByName(title);
+        if (recipeDTO == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        boolean isFavorite = favoriteService.addFavorite(recipeDTO.getId(), user.getId());
+        return ResponseEntity.ok(Map.of("isFavorite", isFavorite));
+    }
+
+
 
     @GetMapping("/recipes/{category}")
     public String listRecipesByCategory(@PathVariable("category") String categoryName, Model model) {
 
+        List<RecipeDTO> recipes = recipeService.getAllRecipes();
         List<RecipeDTO> recipesByCategory = recipeService.getRecipesByCategory(categoryName);
+
+        Map<Integer, Integer> likesMap = new HashMap<>();
+        Map<Integer, Integer> commentsMap = new HashMap<>();
+
+        // Assuming you have a method in your service to get likes for all recipes
+        for (RecipeDTO recipe : recipes) {
+            Rating rating = ratingService.findRatingByRecipeId(recipe.getId());
+            // Assuming that if there's no rating, the number of likes is 0
+            int likes = (rating != null) ? rating.getLikes() : 0;
+            likesMap.put(recipe.getId(), likes);
+        }
+
+        // Populate the comments map for each recipe
+        for (RecipeDTO recipe : recipes) {
+            long commentsCount = commentService.countCommentsByRecipeId(recipe.getId());
+            int commentsInt = (int) commentsCount;
+            commentsMap.put(recipe.getId(), commentsInt);
+        }
 
         List<CategoryDTO> categories = categoryRepository.findAll().stream()
                 .map(CategoryMapper::mapToCategoryDTO)
@@ -179,6 +261,8 @@ public class RecipeController {
 
         model.addAttribute("recipes", recipesByCategory);
         model.addAttribute("categories", categories);
+        model.addAttribute("likesMap", likesMap);
+        model.addAttribute("commentsMap", commentsMap);
         model.addAttribute("selectedCategory", categoryName);
 
         return "recipes";
@@ -212,7 +296,6 @@ public class RecipeController {
             attributes.addFlashAttribute("error", "You must be logged in to submit a recipe.");
             return "redirect:/login";
         }
-
 
         // Extracting manually added ingredients and instruction steps from request
         String[] ingredientNames = request.getParameterValues("ingredientNames");
