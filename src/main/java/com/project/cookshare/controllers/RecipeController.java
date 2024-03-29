@@ -261,24 +261,6 @@ public class RecipeController {
         return "recipes";
     }
 
-    @GetMapping("/submit_recipe")
-    public String submitRecipeForm( HttpServletRequest request,Model model) {
-        Recipe recipe = new Recipe();
-
-        HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
-        }
-        List<CategoryDTO> categories = categoryRepository.findAll().stream()
-                .map(CategoryMapper::mapToCategoryDTO) // Assuming you have this mapper method
-                .collect(Collectors.toList());
-
-        model.addAttribute("categories", categories);
-        model.addAttribute("recipe", recipe);
-        return "submit_recipe";
-    }
-
     @PostMapping("/recipes/search")
     public String searchRecipes(@RequestParam String searchQuery, Model model, HttpServletRequest request) {
         HttpSession session = request.getSession();
