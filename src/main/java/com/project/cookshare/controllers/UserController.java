@@ -1,29 +1,51 @@
 package com.project.cookshare.controllers;
 
+import com.project.cookshare.DTOs.CategoryDTO;
 import com.project.cookshare.DTOs.RecipeDTO;
 import com.project.cookshare.DTOs.UserDTO;
+import com.project.cookshare.mapper.CategoryMapper;
 import com.project.cookshare.mapper.UserMapper;
-import com.project.cookshare.models.Rating;
-import com.project.cookshare.models.Recipe;
-import com.project.cookshare.models.User;
-import com.project.cookshare.services.FavoriteService;
-import com.project.cookshare.services.RatingService;
-import com.project.cookshare.services.RecipeService;
-import com.project.cookshare.services.UserService;
+import com.project.cookshare.models.*;
+import com.project.cookshare.repositories.CategoryRepository;
+import com.project.cookshare.services.*;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import com.project.cookshare.DTOs.CategoryDTO;
+import com.project.cookshare.DTOs.RecipeDTO;
+import com.project.cookshare.DTOs.UserDTO;
+import com.project.cookshare.mapper.CategoryMapper;
+import com.project.cookshare.mapper.UserMapper;
+import com.project.cookshare.models.*;
+import com.project.cookshare.repositories.CategoryRepository;
+import com.project.cookshare.services.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class UserController {
@@ -31,13 +53,19 @@ public class UserController {
     private final RecipeService recipeService;
     private final RatingService ratingService;
     private final FavoriteService favoriteService;
+    private final IngredientService ingredientService;
+    private final InstructionStepService instructionStepService;
+    private final CategoryRepository categoryRepository;
 
     @Autowired
-    public UserController(UserService userService, RecipeService recipeService, RatingService ratingService, FavoriteService favoriteService) {
+    public UserController(UserService userService, RecipeService recipeService, RatingService ratingService, FavoriteService favoriteService, IngredientService ingredientService, InstructionStepService instructionStepService, CategoryRepository categoryRepository) {
         this.userService = userService;
         this.recipeService = recipeService;
         this.ratingService = ratingService;
         this.favoriteService = favoriteService;
+        this.ingredientService = ingredientService;
+        this.instructionStepService = instructionStepService;
+        this.categoryRepository = categoryRepository;
     }
 
     @GetMapping("/login")
@@ -51,7 +79,7 @@ public class UserController {
         User existingUser = userService.findUserByUsername(user.getUsername());
         if (existingUser != null && existingUser.getPassword().equals(user.getPassword())) {
             session.setAttribute("user", existingUser);
-            return "redirect:/recipes"; // Redirect to a home page or dashboard
+            return "redirect:/recipes";
         } else {
             model.addAttribute("loginError", "Invalid username or password.");
             return "login";
@@ -60,8 +88,8 @@ public class UserController {
 
     @GetMapping("/logout")
     public String logoutUser(SessionStatus status, HttpSession session) {
-        status.setComplete(); // Clears @SessionAttributes
-        session.invalidate(); // Invalidate session
+        status.setComplete();
+        session.invalidate();
         return "redirect:/login";
     }
 
@@ -70,39 +98,27 @@ public class UserController {
         List<RecipeDTO> recipes = recipeService.getAllRecipes();
         User user = (User) session.getAttribute("user");
         if (user == null) {
-            // Handle case where user is not logged in or session has expired
             return "redirect:/login";
         }
         Map<Integer, Integer> likesMap = new HashMap<>();
         List<RecipeDTO> favoriteRecipes = recipeService.getFavoriteRecipesByUser(user.getId());
 
-        // Assuming you have a method in your service to get likes for all recipes
         for (RecipeDTO recipe : recipes) {
             Rating rating = ratingService.findRatingByRecipeId(recipe.getId());
-            // Assuming that if there's no rating, the number of likes is 0
             int likes = (rating != null) ? rating.getLikes() : 0;
             likesMap.put(recipe.getId(), likes);
         }
 
-        if (user != null) {
-            // Correctly call the method with the user's ID
-            int recipesSubmittedCount = userService.calculateRecipesSubmittedByUser(user.getId());
-            User userDTO = userService.findUserByUsername(user.getUsername());
-            // It might be more appropriate to add this count to the UserDTO or directly to the model
-            userDTO.setRecipesSubmitted(recipesSubmittedCount); // Assuming UserDTO has this field
-            model.addAttribute("userDTO", userDTO);
-            // Assuming you have a method that fetches the current user based on the login
-            // Fetch the recipes that are created by the logged-in user
-            recipes = recipeService.getRecipesByAuthor(user);
+        int recipesSubmittedCount = userService.calculateRecipesSubmittedByUser(user.getId());
+        User userDTO = userService.findUserByUsername(user.getUsername());
+        userDTO.setRecipesSubmitted(recipesSubmittedCount);
+        model.addAttribute("userDTO", userDTO);
+        recipes = recipeService.getRecipesByAuthor(user);
 
-            model.addAttribute("user", user);
-            model.addAttribute("recipes", recipes);
-            model.addAttribute("favoriteRecipes", favoriteRecipes);
-            model.addAttribute("likesMap", likesMap);
-        } else {
-            // Handle case where user is not logged in or session has expired
-            return "redirect:/login";
-        }
+        model.addAttribute("user", user);
+        model.addAttribute("recipes", recipes);
+        model.addAttribute("favoriteRecipes", favoriteRecipes);
+        model.addAttribute("likesMap", likesMap);
         return "my_profile";
     }
 
@@ -110,23 +126,18 @@ public class UserController {
     public String deleteRecipe(@PathVariable("id") int recipeId, HttpSession session, RedirectAttributes attributes) {
         User user = (User) session.getAttribute("user");
         if (user == null) {
-            // User is not logged in, redirect to login page
             attributes.addFlashAttribute("error", "You must be logged in to delete recipes.");
             return "redirect:/login";
         }
 
-        // Optional: Check if the recipe belongs to the user
         Recipe recipe = recipeService.findRecipeById(recipeId);
         if (recipe == null || !recipe.getAuthor().getId().equals(user.getId())) {
-            // Recipe does not exist or does not belong to the logged-in user
             attributes.addFlashAttribute("error", "You do not have permission to delete this recipe.");
             return "redirect:/profile";
         }
 
-        // Delete the recipe
         recipeService.deleteRecipe(recipeId);
 
-        // Add a success message and redirect back to the user profile
         attributes.addFlashAttribute("message", "Recipe successfully deleted.");
         return "redirect:/profile";
     }
@@ -135,25 +146,14 @@ public class UserController {
     public String removeRecipeFromFavorites(@PathVariable("id") int recipeId, HttpSession session, RedirectAttributes attributes) {
         User user = (User) session.getAttribute("user");
         if (user == null) {
-            // User is not logged in, redirect to login page
             attributes.addFlashAttribute("error", "You must be logged in to remove favorites.");
             return "redirect:/login";
         }
 
-        // Remove the recipe from favorites
         favoriteService.removeFavorite(recipeId, user.getId());
 
-        // Add a success message and redirect back to the user profile or favorite page
         attributes.addFlashAttribute("message", "Recipe successfully removed from favorites.");
-        return "redirect:/profile"; // or wherever your favorites are shown
-    }
-
-
-    @GetMapping("/contact")
-    public String contact(String username, Model model) {
-//        UserDTO userDTO = userService.findUserByUsername(username);
-//        model.addAttribute("user", userDTO);
-        return "contact";
+        return "redirect:/profile";
     }
 
     @GetMapping("/register")
@@ -164,9 +164,203 @@ public class UserController {
 
     @PostMapping("/register")
     public String registerUser(@ModelAttribute("user") UserDTO userDTO, Model model, HttpSession session) {
-            userService.registerUser(userDTO); // Assuming you have a method to register and check if successful
-            session.setAttribute("user", UserMapper.mapToUserEntity(userDTO)); // Optionally add the new user to the session
-            return "login"; // Redirect them to the login page (or a welcome page)
+            userService.registerUser(userDTO);
+            session.setAttribute("user", UserMapper.mapToUserEntity(userDTO));
+            return "login";
         }
+
+    @PostMapping("/updateProfile")
+    public String updateProfile(
+            @RequestParam("name") String name,
+            @RequestParam("username") String username,
+            @RequestParam(value = "password", required = false) String password,
+            HttpSession session,
+            RedirectAttributes attributes) {
+
+        User currentUser = (User) session.getAttribute("user");
+
+        if (currentUser == null) {
+            attributes.addFlashAttribute("error", "You need to log in to update your profile.");
+            return "redirect:/login";
+        }
+
+        User user = new User();
+        user.setId(currentUser.getId());
+        user.setName(name);
+        user.setUsername(username);
+        user.setPassword(password);
+
+        try {
+            User updatedUser = userService.updateProfile(user);
+            session.setAttribute("user", updatedUser);
+            attributes.addFlashAttribute("message", "Profile successfully updated.");
+        } catch (Exception e) {
+            attributes.addFlashAttribute("error", "Profile update failed: " + e.getMessage());
+        }
+
+        return "redirect:/profile";
     }
 
+    @PostMapping("/editRecipe")
+    public String processEditRecipeForm(@ModelAttribute("recipe") Recipe updatedRecipe, BindingResult result, HttpServletRequest request, RedirectAttributes attributes) {
+        if (result.hasErrors()) {
+            return "edit_recipe";
+        }
+
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            attributes.addFlashAttribute("error", "You must be logged in to edit a recipe.");
+            return "redirect:/login";
+        }
+
+        Recipe existingRecipe = recipeService.findRecipeById(updatedRecipe.getId());
+        existingRecipe.setTitle(updatedRecipe.getTitle());
+        existingRecipe.setDescription(updatedRecipe.getDescription());
+        existingRecipe.setCooking_time(updatedRecipe.getCooking_time());
+        existingRecipe.setImage(updatedRecipe.getImage());
+        existingRecipe.setCategory(updatedRecipe.getCategory());
+
+        String[] ingredientNames = request.getParameterValues("ingredientNames");
+        String[] ingredientQuantities = request.getParameterValues("ingredientQuantities");
+        String[] instructionSteps = request.getParameterValues("instructionSteps");
+
+        existingRecipe.getIngredients().clear();
+
+        if (ingredientNames != null) {
+            for (int i = 0; i < ingredientNames.length; i++) {
+                if (!ingredientNames[i].isEmpty() && !ingredientQuantities[i].isEmpty()) {
+                    Ingredient ingredient = new Ingredient();
+                    ingredient.setName(ingredientNames[i]);
+                    ingredient.setQuantity(ingredientQuantities[i]);
+                    ingredient.setRecipe(existingRecipe); // Set the recipe to each ingredient
+                    existingRecipe.getIngredients().add(ingredient); // Add ingredient to the recipe
+                }
+            }
+        }
+
+        existingRecipe.getInstruction_step().clear();
+
+        existingRecipe.getIngredients().clear();
+
+        if (ingredientNames != null) {
+            for (int i = 0; i < ingredientNames.length; i++) {
+                if (!ingredientNames[i].isEmpty() && !ingredientQuantities[i].isEmpty()) {
+                    Ingredient ingredient = new Ingredient();
+                    ingredient.setName(ingredientNames[i]);
+                    ingredient.setQuantity(ingredientQuantities[i]);
+                    ingredient.setRecipe(existingRecipe);
+                    existingRecipe.getIngredients().add(ingredient);
+                }
+            }
+        }
+        existingRecipe.getInstruction_step().clear();
+        if (instructionSteps != null) {
+            int stepNumber = 1;
+            for (String step : instructionSteps) {
+                if (!step.isEmpty()) {
+                    InstructionStep instructionStep = new InstructionStep();
+                    instructionStep.setInstruction(step);
+                    instructionStep.setStep_number(stepNumber++);
+                    instructionStep.setRecipe(existingRecipe);
+                    existingRecipe.getInstruction_step().add(instructionStep);
+                }
+            }
+        }
+
+        recipeService.saveRecipe(existingRecipe, user.getId());
+
+        return "redirect:/profile";
+    }
+
+    @PostMapping("/submitRecipe")
+    public String processRecipeForm(@ModelAttribute("recipe") Recipe recipe, BindingResult result, HttpServletRequest request, RedirectAttributes attributes) {
+        if (result.hasErrors()) {
+            return "submit_recipe";
+        }
+
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        Integer userId;
+        if (user != null) {
+            userId = user.getId();
+        } else {
+            attributes.addFlashAttribute("error", "You must be logged in to submit a recipe.");
+            return "redirect:/login";
+        }
+
+        String[] ingredientNames = request.getParameterValues("ingredientNames");
+        String[] ingredientQuantities = request.getParameterValues("ingredientQuantities");
+        String[] instructionSteps = request.getParameterValues("instructionSteps");
+
+        if (ingredientNames != null) {
+            for (int i = 0; i < ingredientNames.length; i++) {
+                if (ingredientNames[i] != null && !ingredientNames[i].isEmpty() && ingredientQuantities[i] != null) {
+                    Ingredient ingredient = new Ingredient();
+                    ingredient.setName(ingredientNames[i]);
+                    ingredient.setQuantity(ingredientQuantities[i]);
+                    recipe.addIngredient(ingredient);
+                }
+            }
+        }
+
+        if (instructionSteps != null && instructionSteps.length > 0) {
+            for (int i = instructionSteps.length - 1; i >= 0; i--) { // Loop in reverse order
+                if (!instructionSteps[i].isEmpty()) {
+                    InstructionStep instructionStep = new InstructionStep();
+                    instructionStep.setInstruction(instructionSteps[i]);
+                    // Set the step number so that it reflects the original order
+                    instructionStep.setStep_number(instructionSteps.length - i);
+                    recipe.addInstructionStep(instructionStep); // Associate instruction with recipe
+                }
+            }
+        }
+        recipe.setCreated_date(new Date());
+
+        recipeService.addRecipe(recipe, userId);
+
+        return "redirect:/recipes";
+    }
+
+    @GetMapping("/editRecipe/{id}")
+    public String showEditRecipeForm(@PathVariable("id") Integer id, Model model,HttpServletRequest request) {
+        Recipe recipe = recipeService.findRecipeById(id);
+        HttpSession session = request.getSession();
+
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        List<Ingredient> ingredients = ingredientService.findByRecipeId(recipe.getId());
+        List<InstructionStep> instructionSteps = instructionStepService.findByRecipeId(recipe.getId());
+        List<CategoryDTO> categories = categoryRepository.findAll().stream()
+                .map(CategoryMapper::mapToCategoryDTO)
+                .collect(Collectors.toList());
+
+        model.addAttribute("recipe", recipe);
+        model.addAttribute("ingredients", ingredients);
+        model.addAttribute("instructionSteps", instructionSteps);
+        model.addAttribute("categories", categories);
+
+        return "edit_recipe";
+    }
+
+    @GetMapping("/submit_recipe")
+    public String submitRecipeForm( HttpServletRequest request,Model model) {
+        Recipe recipe = new Recipe();
+
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        List<CategoryDTO> categories = categoryRepository.findAll().stream()
+                .map(CategoryMapper::mapToCategoryDTO) // Assuming you have this mapper method
+                .collect(Collectors.toList());
+
+        model.addAttribute("categories", categories);
+        model.addAttribute("recipe", recipe);
+        return "submit_recipe";
+    }
+
+}

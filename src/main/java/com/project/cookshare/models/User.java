@@ -28,7 +28,6 @@ public class User {
     @Column(name = "recipes_submitted")
     private int recipesSubmitted = 0;
 
-    // Mapping to comments, recipes, ratings, and favorites
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
     private Set<Comment> comments;
 

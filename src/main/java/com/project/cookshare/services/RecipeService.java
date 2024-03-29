@@ -12,19 +12,16 @@ import java.util.List;
 
 public interface RecipeService {
 
-    // Class Diagram Methods
     void addRecipe(Recipe recipe, int userId);
-    void updateRecipe(RecipeDTO recipeDTO);
     void deleteRecipe(Integer recipeId);
     void saveRecipe(Recipe recipe, int userId);
 
-    // Additional Methods
     Recipe findRecipeById(Integer recipeId);
     RecipeDTO findRecipeByName(String recipeName);
     List<RecipeDTO> getAllRecipes();
-    List<InstructionStepDTO> getAllInstructions(String title);
     List<RecipeDTO> getRecipesByCategory(String category);
     List<RecipeDTO> getRecipesByAuthor(User author);
-
     List<RecipeDTO> getFavoriteRecipesByUser(Integer userId);
+    List<RecipeDTO> searchByTitle(String title);
+
 }

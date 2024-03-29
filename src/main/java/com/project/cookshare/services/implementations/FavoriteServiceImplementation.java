@@ -44,7 +44,6 @@ public class FavoriteServiceImplementation implements FavoriteService {
     @Transactional
     public void removeFavorite(Integer recipeId, Integer userId) {
         favoriteRepository.deleteByRecipeIdAndUserId(recipeId, userId);
-
     }
 
     @Override
@@ -52,8 +51,4 @@ public class FavoriteServiceImplementation implements FavoriteService {
         return favoriteRepository.existsByRecipeIdAndUserId(recipeId, userId);
     }
 
-    @Override
-    public List<Favorite> getAllFavorites() {
-        return favoriteRepository.findAll();
-    }
 }

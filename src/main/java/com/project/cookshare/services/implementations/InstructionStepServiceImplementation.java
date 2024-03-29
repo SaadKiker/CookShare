@@ -23,8 +23,4 @@ public class InstructionStepServiceImplementation implements InstructionStepServ
         return instructionStepRepository.findByRecipeId(id);
     }
 
-    @Override
-    public void deleteByRecipeId(Integer id) {
-        instructionStepRepository.deleteAllByRecipeId(id);
-    }
 }

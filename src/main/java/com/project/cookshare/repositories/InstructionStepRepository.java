@@ -9,11 +9,7 @@ import java.util.List;
 
 @Repository
 public interface InstructionStepRepository extends JpaRepository<InstructionStep, Integer> {
-    // If you need to find InstructionSteps by some property, you can add methods here.
-    // For example, to find by recipe, assuming InstructionStep has a reference to Recipe:
     List<InstructionStep> findByRecipeId(Integer id);
     List<InstructionStep> findByRecipe(Recipe recipe);
     void deleteAllByRecipeId(Integer id);
-
-    // If you just need to find all, you can use findAll inherited from JpaRepository
 }

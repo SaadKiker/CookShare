@@ -13,12 +13,12 @@ import java.util.Set;
 @Builder
 @Entity
 @Table(name = "recipe")
-@EqualsAndHashCode(onlyExplicitlyIncluded = true) // Specify that only fields explicitly marked should be included
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Recipe {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include // Include this field in equals and hashCode calculations
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false)
@@ -65,7 +65,7 @@ public class Recipe {
             this.ingredients = new HashSet<>();
         }
         ingredients.add(ingredient);
-        ingredient.setRecipe(this); // Be cautious about mutual references if not managed correctly
+        ingredient.setRecipe(this);
     }
 
     public void addInstructionStep(InstructionStep instructionStep) {
@@ -73,7 +73,7 @@ public class Recipe {
             this.instruction_step = new HashSet<>();
         }
         instruction_step.add(instructionStep);
-        instructionStep.setRecipe(this); // Be cautious here as well
+        instructionStep.setRecipe(this);
     }
 
 }

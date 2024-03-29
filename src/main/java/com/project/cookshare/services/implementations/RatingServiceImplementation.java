@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class RatingServiceImplementation implements RatingService {
@@ -31,11 +30,6 @@ public class RatingServiceImplementation implements RatingService {
         return ratingRepository.findByRecipeId(id);
     }
 
-    @Override
-    public void rateRecipe(Integer recipeId, RatingDTO ratingDTO) {
-        Rating rating = RatingMapper.mapToRatingEntity(ratingDTO);
-        ratingRepository.save(rating);
-    }
 
     @Override
     public Rating updateRating(Integer recipeId, String type) {
@@ -48,8 +42,8 @@ public class RatingServiceImplementation implements RatingService {
         if (rating == null) {
             rating = new Rating();
             rating.setRecipe(recipe);
-            rating.setLikes(0); // Initialize likes
-            rating.setDislikes(0); // Initialize dislikes
+            rating.setLikes(0);
+            rating.setDislikes(0);
         }
 
         if ("like".equals(type)) {
@@ -61,13 +55,4 @@ public class RatingServiceImplementation implements RatingService {
         return ratingRepository.save(rating);
     }
 
-    @Override
-    public void deleteRatingById(Integer ratingId) {
-        ratingRepository.deleteById(ratingId);
-    }
-
-    @Override
-    public List<Rating> getAllRatings() {
-        return ratingRepository.findAll();
-    }
 }

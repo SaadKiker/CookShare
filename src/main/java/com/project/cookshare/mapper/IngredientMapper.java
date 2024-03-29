@@ -14,7 +14,6 @@ public class IngredientMapper {
         entity.setId(dto.getId());
         entity.setName(dto.getName());
         entity.setQuantity(dto.getQuantity());
-        // Assuming there are additional fields like Recipe which are set elsewhere
         return entity;
     }
 

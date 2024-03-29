@@ -23,6 +23,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,8 +33,6 @@ import java.util.stream.Collectors;
 @Controller
 public class RecipeController {
     private final RecipeService recipeService;
-    private final IngredientService ingredientService;
-    private final InstructionStepService instructionStepService;
     private final CategoryRepository categoryRepository;
     private final InstructionStepRepository instructionStepRepository;
     private final IngredientRepository ingredientRepository;
@@ -40,12 +41,9 @@ public class RecipeController {
     private final FavoriteService favoriteService;
     private final CommentService commentService;
 
-
     @Autowired
-    public RecipeController(RecipeService recipeService, CategoryService categoryService, IngredientService ingredientService, InstructionStepService instructionStepService, CategoryRepository categoryRepository, InstructionStepRepository instructionStepRepository, IngredientRepository ingredientRepository, CommentRepository commentRepository, RatingService ratingService, FavoriteService favoriteService, CommentService commentService) {
+    public RecipeController(RecipeService recipeService, CategoryRepository categoryRepository, InstructionStepRepository instructionStepRepository, IngredientRepository ingredientRepository, CommentRepository commentRepository, RatingService ratingService, FavoriteService favoriteService, CommentService commentService) {
         this.recipeService = recipeService;
-        this.ingredientService = ingredientService;
-        this.instructionStepService = instructionStepService;
         this.categoryRepository = categoryRepository;
         this.instructionStepRepository = instructionStepRepository;
         this.ingredientRepository = ingredientRepository;
@@ -56,20 +54,21 @@ public class RecipeController {
     }
 
     @GetMapping("/recipes")
-    public String listRecipes(Model model) {
+    public String listRecipes( HttpServletRequest request, Model model) {
         List<RecipeDTO> recipes = recipeService.getAllRecipes();
         Map<Integer, Integer> likesMap = new HashMap<>();
         Map<Integer, Integer> commentsMap = new HashMap<>();
-
-        // Assuming you have a method in your service to get likes for all recipes
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
         for (RecipeDTO recipe : recipes) {
             Rating rating = ratingService.findRatingByRecipeId(recipe.getId());
-            // Assuming that if there's no rating, the number of likes is 0
             int likes = (rating != null) ? rating.getLikes() : 0;
             likesMap.put(recipe.getId(), likes);
         }
 
-        // Populate the comments map for each recipe
         for (RecipeDTO recipe : recipes) {
             long commentsCount = commentService.countCommentsByRecipeId(recipe.getId());
             int commentsInt = (int) commentsCount;
@@ -93,29 +92,26 @@ public class RecipeController {
     public String getRecipeByName(@PathVariable("title") String title, Model model, HttpServletRequest request) {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
-
+        if (user == null) {
+            return "redirect:/login";
+        }
         RecipeDTO recipeDTO = recipeService.findRecipeByName(title);
         Recipe recipe = RecipeMapper.mapToRecipeEntity(recipeDTO);
 
-        // Fetching instruction steps
         List<InstructionStepDTO> instructionSteps = instructionStepRepository.findByRecipe(recipe).stream()
                 .map(InstructionStepMapper::mapToInstructionStepDTO)
                 .collect(Collectors.toList());
 
-        // Fetching ingredients for the recipe
         List<IngredientDTO> ingredients = ingredientRepository.findByRecipe(recipe).stream()
                 .map(IngredientMapper::mapToIngredientDTO)
                 .collect(Collectors.toList());
 
-        // Fetching comments for the recipe
         List<CommentDTO> comments = commentRepository.findByRecipe(recipe).stream()
                 .map(CommentMapper::mapToCommentDTO)
                 .toList();
 
-        // Fetching categories for the recipe
-        // This assumes you have a method in a repository or service to fetch categories by recipe
         List<CategoryDTO> categories = categoryRepository.findAll().stream()
-                .map(CategoryMapper::mapToCategoryDTO) // Assuming you have this mapper method
+                .map(CategoryMapper::mapToCategoryDTO)
                 .collect(Collectors.toList());
 
         Rating rating = ratingService.findRatingByRecipeId(recipe.getId());
@@ -124,22 +120,21 @@ public class RecipeController {
 
         boolean isFavorite = false;
         if (user != null) {
-            isFavorite = favoriteService.isFavorite(recipeDTO.getId(), user.getId()); // Ensure this method exists in your service
+            isFavorite = favoriteService.isFavorite(recipeDTO.getId(), user.getId());
         }
-        // Adding attributes to the model
+
         model.addAttribute("recipe", recipeDTO);
         model.addAttribute("instructionSteps", instructionSteps);
         model.addAttribute("ingredients", ingredients);
         model.addAttribute("comments", comments);
         model.addAttribute("totalComments", comments.size());
-        model.addAttribute("categories", categories); // Add categories to the model
+        model.addAttribute("categories", categories);
         model.addAttribute("likes", likes);
         model.addAttribute("dislikes", dislikes);
-        model.addAttribute("isFavorite", isFavorite); // Add whether the recipe is a favorite
+        model.addAttribute("isFavorite", isFavorite);
 
         return "recipe";
     }
-
 
     @PostMapping("/recipe/{title}")
     public String handleRecipeActions(
@@ -152,7 +147,6 @@ public class RecipeController {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
         if (user == null) {
-            // User is not authenticated
             return "redirect:/login";
         }
 
@@ -167,7 +161,7 @@ public class RecipeController {
                 redirectAttributes.addFlashAttribute("error", "Comment cannot be empty");
                 return "redirect:/recipe/" + title;
             }
-            // Save comment logic
+
             Comment comment = new Comment();
             comment.setContent(commentText);
             comment.setRecipe(RecipeMapper.mapToRecipeEntity(recipeDTO));
@@ -176,7 +170,6 @@ public class RecipeController {
             commentService.addComment(comment);
             redirectAttributes.addFlashAttribute("success", "Comment added successfully");
         } else if ("like".equals(action) || "dislike".equals(action)) {
-            // Like or dislike logic
             ratingService.updateRating(recipeDTO.getId(), action);
             redirectAttributes.addFlashAttribute("success", "Your feedback has been recorded");
         } else {
@@ -212,7 +205,8 @@ public class RecipeController {
     @ResponseBody
     public ResponseEntity<Map<String, Boolean>> handleFavoriteAction(
             @PathVariable String title,
-            HttpServletRequest request) {
+            HttpServletRequest request) throws UnsupportedEncodingException {
+        String decodedTitle = URLDecoder.decode(title, StandardCharsets.UTF_8.name());
 
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
@@ -220,7 +214,7 @@ public class RecipeController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        RecipeDTO recipeDTO = recipeService.findRecipeByName(title);
+        RecipeDTO recipeDTO = recipeService.findRecipeByName(decodedTitle);
         if (recipeDTO == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
@@ -229,26 +223,25 @@ public class RecipeController {
         return ResponseEntity.ok(Map.of("isFavorite", isFavorite));
     }
 
-
-
     @GetMapping("/recipes/{category}")
-    public String listRecipesByCategory(@PathVariable("category") String categoryName, Model model) {
+    public String listRecipesByCategory(@PathVariable("category") String categoryName, Model model,  HttpServletRequest request) {
 
         List<RecipeDTO> recipes = recipeService.getAllRecipes();
         List<RecipeDTO> recipesByCategory = recipeService.getRecipesByCategory(categoryName);
-
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
         Map<Integer, Integer> likesMap = new HashMap<>();
         Map<Integer, Integer> commentsMap = new HashMap<>();
 
-        // Assuming you have a method in your service to get likes for all recipes
         for (RecipeDTO recipe : recipes) {
             Rating rating = ratingService.findRatingByRecipeId(recipe.getId());
-            // Assuming that if there's no rating, the number of likes is 0
             int likes = (rating != null) ? rating.getLikes() : 0;
             likesMap.put(recipe.getId(), likes);
         }
 
-        // Populate the comments map for each recipe
         for (RecipeDTO recipe : recipes) {
             long commentsCount = commentService.countCommentsByRecipeId(recipe.getId());
             int commentsInt = (int) commentsCount;
@@ -269,9 +262,14 @@ public class RecipeController {
     }
 
     @GetMapping("/submit_recipe")
-    public String submitRecipeForm(Model model) {
+    public String submitRecipeForm( HttpServletRequest request,Model model) {
         Recipe recipe = new Recipe();
 
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
         List<CategoryDTO> categories = categoryRepository.findAll().stream()
                 .map(CategoryMapper::mapToCategoryDTO) // Assuming you have this mapper method
                 .collect(Collectors.toList());
@@ -281,171 +279,39 @@ public class RecipeController {
         return "submit_recipe";
     }
 
-    @PostMapping("/submitRecipe")
-    public String processRecipeForm(@ModelAttribute("recipe") Recipe recipe, BindingResult result, HttpServletRequest request, RedirectAttributes attributes) {
-        if (result.hasErrors()) {
-            return "submit_recipe"; // Redirect back to form if there are errors
-        }
-
+    @PostMapping("/recipes/search")
+    public String searchRecipes(@RequestParam String searchQuery, Model model, HttpServletRequest request) {
         HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("user");
-        Integer userId = null;
-        if (user != null) {
-            userId = user.getId(); // Get the user ID from the user object
-        } else {
-            attributes.addFlashAttribute("error", "You must be logged in to submit a recipe.");
-            return "redirect:/login";
-        }
-
-        // Extracting manually added ingredients and instruction steps from request
-        String[] ingredientNames = request.getParameterValues("ingredientNames");
-        String[] ingredientQuantities = request.getParameterValues("ingredientQuantities");
-        String[] instructionSteps = request.getParameterValues("instructionSteps");
-
-        // Logic to add ingredients and instruction steps to recipe object
-        if (ingredientNames != null) {
-            for (int i = 0; i < ingredientNames.length; i++) {
-                if (ingredientNames[i] != null && !ingredientNames[i].isEmpty() && ingredientQuantities[i] != null) {
-                    Ingredient ingredient = new Ingredient();
-                    ingredient.setName(ingredientNames[i]);
-                    ingredient.setQuantity(ingredientQuantities[i]);
-                    recipe.addIngredient(ingredient);
-                }
-            }
-        }
-
-        if (instructionSteps != null && instructionSteps.length > 0) {
-            for (int i = instructionSteps.length - 1; i >= 0; i--) { // Loop in reverse order
-                if (!instructionSteps[i].isEmpty()) {
-                    InstructionStep instructionStep = new InstructionStep();
-                    instructionStep.setInstruction(instructionSteps[i]);
-                    // Set the step number so that it reflects the original order
-                    instructionStep.setStep_number(instructionSteps.length - i);
-                    recipe.addInstructionStep(instructionStep); // Associate instruction with recipe
-                }
-            }
-        }
-
-        /**
-         * length = 3
-         * loop1 : i = 2 .
-         */
-
-        recipe.setCreated_date(new Date());
-
-        // Use the service to add the recipe, associated with the obtained user ID
-        recipeService.addRecipe(recipe, userId);
-
-        // Add success message and redirect to avoid duplicate submissions
-        attributes.addFlashAttribute("message", "Recipe successfully added!");
-        return "redirect:/recipes";
-    }
-
-    @GetMapping("/editRecipe/{id}")
-    public String showEditRecipeForm(@PathVariable("id") Integer id, Model model) {
-        // Fetch the recipe with its details. Assuming recipeService handles fetching by id including ingredients and instructions.
-        Recipe recipe = recipeService.findRecipeById(id);
-
-        // Assuming you have methods in your service to fetch ingredients and instruction steps associated with the recipe
-        List<Ingredient> ingredients = ingredientService.findByRecipeId(recipe.getId());
-        List<InstructionStep> instructionSteps = instructionStepService.findByRecipeId(recipe.getId());
-        List<CategoryDTO> categories = categoryRepository.findAll().stream()
-                .map(CategoryMapper::mapToCategoryDTO) // Assuming you have this mapper method
-                .collect(Collectors.toList());
-
-        // Adding attributes to the model to be returned to the view
-        model.addAttribute("recipe", recipe);
-        model.addAttribute("ingredients", ingredients);
-        model.addAttribute("instructionSteps", instructionSteps);
-        model.addAttribute("categories", categories);
-
-        return "edit_recipe"; // Name of your Thymeleaf template for editing recipes
-    }
-    @PostMapping("/editRecipe")
-    public String processEditRecipeForm(@ModelAttribute("recipe") Recipe updatedRecipe, BindingResult result, HttpServletRequest request, RedirectAttributes attributes) {
-        if (result.hasErrors()) {
-            return "edit_recipe"; // Return back to the form if there are errors
-        }
-
-        // Assuming we have a session or a way to get the currently logged in user
-        HttpSession session = request.getSession();
+        List<RecipeDTO> filteredRecipes = recipeService.searchByTitle(searchQuery);
+        Map<Integer, Integer> likesMap = new HashMap<>();
+        Map<Integer, Integer> commentsMap = new HashMap<>();
         User user = (User) session.getAttribute("user");
         if (user == null) {
-            attributes.addFlashAttribute("error", "You must be logged in to edit a recipe.");
             return "redirect:/login";
         }
-
-        // Fetch the existing recipe from the database
-        Recipe existingRecipe = recipeService.findRecipeById(updatedRecipe.getId());
-        // Update existing recipe with new details
-        existingRecipe.setTitle(updatedRecipe.getTitle());
-        existingRecipe.setDescription(updatedRecipe.getDescription());
-        existingRecipe.setCooking_time(updatedRecipe.getCooking_time());
-        existingRecipe.setImage(updatedRecipe.getImage());
-        existingRecipe.setCategory(updatedRecipe.getCategory());  // Assuming you manage category similarly
-
-        // Extract manually added ingredients and instruction steps from the request
-        String[] ingredientNames = request.getParameterValues("ingredientNames");
-        String[] ingredientQuantities = request.getParameterValues("ingredientQuantities");
-        String[] instructionSteps = request.getParameterValues("instructionSteps");
-
-        // Clear previous ingredients and steps to replace with the new ones
-        existingRecipe.getIngredients().clear();
-
-        if (ingredientNames != null) {
-            for (int i = 0; i < ingredientNames.length; i++) {
-                if (!ingredientNames[i].isEmpty() && !ingredientQuantities[i].isEmpty()) {
-                    Ingredient ingredient = new Ingredient();
-                    ingredient.setName(ingredientNames[i]);
-                    ingredient.setQuantity(ingredientQuantities[i]);
-                    ingredient.setRecipe(existingRecipe); // Set the recipe to each ingredient
-                    existingRecipe.getIngredients().add(ingredient); // Add ingredient to the recipe
-                }
-            }
+        for (RecipeDTO recipe : filteredRecipes) {
+            Rating rating = ratingService.findRatingByRecipeId(recipe.getId());
+            int likes = (rating != null) ? rating.getLikes() : 0;
+            likesMap.put(recipe.getId(), likes);
         }
 
-        existingRecipe.getInstruction_step().clear();
-
-        existingRecipe.getIngredients().clear();
-
-        if (ingredientNames != null) {
-            for (int i = 0; i < ingredientNames.length; i++) {
-                if (!ingredientNames[i].isEmpty() && !ingredientQuantities[i].isEmpty()) {
-                    Ingredient ingredient = new Ingredient();
-                    ingredient.setName(ingredientNames[i]);
-                    ingredient.setQuantity(ingredientQuantities[i]);
-                    ingredient.setRecipe(existingRecipe); // Set the recipe to each ingredient
-                    existingRecipe.getIngredients().add(ingredient); // Add ingredient to the recipe
-                }
-            }
-        }
-// Clear previous instruction steps to replace with the new ones
-        existingRecipe.getInstruction_step().clear(); // Ensure this is the correct method name, it should match your entity structure
-
-// Re-add the instruction steps from the form
-        if (instructionSteps != null) {
-            int stepNumber = 1;
-            for (String step : instructionSteps) {
-                if (!step.isEmpty()) {
-                    InstructionStep instructionStep = new InstructionStep();
-                    instructionStep.setInstruction(step);
-                    instructionStep.setStep_number(stepNumber++); // Ensure your method names match the actual methods in your InstructionStep class
-                    instructionStep.setRecipe(existingRecipe); // Associate the instruction step with the current recipe
-                    // This ensures that the instruction steps are linked to the correct recipe
-                    existingRecipe.getInstruction_step().add(instructionStep); // Re-add the instruction step to the existing recipe
-                }
-            }
+        for (RecipeDTO recipe : filteredRecipes) {
+            long commentsCount = commentService.countCommentsByRecipeId(recipe.getId());
+            int commentsInt = (int) commentsCount;
+            commentsMap.put(recipe.getId(), commentsInt);
         }
 
-// After this, when you save your existingRecipe, the changes should be reflected correctly
+        List<CategoryDTO> categories = categoryRepository.findAll().stream()
+                .map(CategoryMapper::mapToCategoryDTO)
+                .collect(Collectors.toList());
 
+        model.addAttribute("recipes", filteredRecipes);
+        model.addAttribute("likesMap", likesMap);
+        model.addAttribute("commentsMap", commentsMap);
+        model.addAttribute("categories", categories);
+        model.addAttribute("selectedCategory", "All Recipes");
 
-
-        // Save the updated recipe
-        recipeService.saveRecipe(existingRecipe, user.getId()); // Ensure your service method correctly updates the recipe
-
-        attributes.addFlashAttribute("message", "Recipe successfully updated!");
-        return "redirect:/profile"; // Redirect to a confirmation or profile page
+        return "recipes";
     }
 
 }

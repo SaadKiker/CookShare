@@ -18,4 +18,5 @@ public interface RecipeRepository extends JpaRepository<Recipe, Integer> {
     List<Recipe> findByCategoryName(String categoryName);
     List<Recipe> findByAuthor(User author);
     int countByAuthorId(int authorId);
+    List<Recipe> findByTitleContainingIgnoreCase(String title);
 }

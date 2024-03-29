@@ -5,7 +5,6 @@ import lombok.Data;
 @Data
 @Builder
 public class RatingDTO {
-
     private Integer id;
     private Integer score;
     private Integer averageScore;

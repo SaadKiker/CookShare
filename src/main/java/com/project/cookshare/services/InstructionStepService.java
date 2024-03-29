@@ -8,5 +8,5 @@ import java.util.List;
 public interface InstructionStepService {
 
     List<InstructionStep> findByRecipeId(Integer Id);
-    void deleteByRecipeId(Integer id);
+
 }

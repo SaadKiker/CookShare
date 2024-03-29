@@ -5,15 +5,11 @@ import com.project.cookshare.models.User;
 
 public interface UserService {
 
-    // Class Diagram Methods
-    void registerUser(String name, String userName, String password);
-    boolean registerUser(UserDTO userDTO);
-    boolean login(String userName, String password);
-    void updateProfile(UserDTO userDTO);
-    void deleteAccount(Integer userId);
+    void registerUser(UserDTO userDTO);
+    User updateProfile(User user);
 
-    // Additional Methods
     User findUserByUsername(String username);
     User findUserById(Integer userId);
     int calculateRecipesSubmittedByUser(int userId);
+
 }

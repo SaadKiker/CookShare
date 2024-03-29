@@ -26,22 +26,17 @@ public class Rating {
     @JoinColumn(name = "recipe_id", nullable = false)
     private Recipe recipe;
 
-
-    // Setters (Lombok @Data should generate these, but here they are explicitly)
     public void setId(Integer id) {
         this.id = id;
     }
-
     public void setRecipe(Recipe recipe) {
         this.recipe = recipe;
     }
-
-    // Setters for likes and dislikes
     public void setLikes(Integer likes) {
         this.likes = likes;
     }
-
     public void setDislikes(Integer dislikes) {
         this.dislikes = dislikes;
     }
+
 }
